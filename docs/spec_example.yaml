@@ -1,0 +1,47 @@
+# bipgen specification: DRAFT v0, to be reviewed before implementation.
+# One file fully determines an ensemble; a seed picks one realization.
+# Units: the domain is the unit disk (dim 2) or the unit ball (dim 3);
+# every length below is in units of the domain radius.
+
+schema: 0          # version of this format
+seed: 42           # default 42; generate(spec, seed=...) overrides it, and the
+                   # seed actually used is always recorded in the output graph
+dim: 2             # 2 or 3
+
+sizes:
+  n_bcn: 5000      # nodes of side A (rows of the biadjacency matrix)
+  n_tgt: 5000      # nodes of side B (columns)
+
+positions:
+  method: uniform  # uniform | metropolis
+  # metropolis only (2D in v0.1): an occupancy map on an n_bins x n_bins grid
+  # clipped to the disk, rearranged by simulated annealing until its spatial
+  # autocorrelation matches the target correlogram.
+  # density:
+  #   n_bins: 20
+  #   occupancy: {source: gamma, cv: 0.5}   # or {source: file, key: occupancy}
+  #   correlogram: [0.30, 0.10]            # target autocorrelation at lags 1, 2
+  #   sweeps: 400
+
+degrees:           # target degrees (integers), matched in expectation by Sinkhorn scaling
+  distribution: lognormal   # lognormal | constant | empirical
+  bcn: {median: 20, sigma: 0.5}
+  tgt: {sigma: 0.5}         # shape only: both sides must have the same total,
+                            # so n_bcn * <k_bcn> = n_tgt * <k_tgt> fixes the TGT scale
+  # constant:  bcn: {value: 20}, tgt: {}
+  # empirical: bcn: {key: degrees_bcn}, tgt: {key: degrees_tgt}  (resampled, TGT rescaled)
+  # Degrees are assigned to positions at random (no degree-position correlation).
+
+edges:
+  model: kernel    # kernel | knn
+  kernel: gaussian # name in the kernel registry
+  scale: 0.10      # kernel length L: K(d) = exp(-(d / L)^2)
+  # sinkhorn: {tol: 1.0e-3, max_iter: 2000}   # optional solver settings
+  # knn only: each BCN links to its k nearest TGT (degrees section ignored)
+  # k: 10
+
+background:        # edges unrelated to distance, drawn after the geometric ones
+  model: uniform   # none | uniform | configuration (endpoints ~ target degrees)
+  ratio: 0.05      # background edges per geometric edge
+
+arrays: null       # optional companion .npz with the arrays referenced above
