@@ -22,7 +22,9 @@ fluctuate around it.
 
 The kernel matrix is dense during Sinkhorn scaling: memory is about
 ``4 * n_bcn * n_tgt`` bytes. Sampling works on row blocks and never holds the
-full probability matrix.
+full probability matrix. Sinkhorn runs its matrix-vector products on one BLAS
+thread: they are limited by memory bandwidth, more threads barely help, and a
+fixed thread count keeps the potentials independent of the machine.
 """
 
 from __future__ import annotations
@@ -34,6 +36,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, vstack
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
+from threadpoolctl import threadpool_limits
 
 from . import kernels
 
@@ -48,6 +51,7 @@ class SinkhornResult:
     theta_b: np.ndarray
     n_iter: int
     converged: bool
+    max_error: float  # largest relative gap between expected and target degree, before clipping
 
 
 def kernel_rows(pos_a, pos_b, kernel: str, scale: float, start: int, stop: int) -> np.ndarray:
@@ -66,8 +70,11 @@ def kernel_matrix(pos_a, pos_b, kernel: str, scale: float) -> np.ndarray:
 
 
 def _scale(k: np.ndarray, field: np.ndarray) -> np.ndarray:
-    """``k / field``, with 0 where the field vanishes (nodes out of kernel range)."""
-    return np.divide(k, field, out=np.zeros_like(k), where=field > 0)
+    """``k / field``; 0 for zero-degree nodes, inf where a positive degree meets no partner."""
+    out = np.full_like(k, np.inf)
+    np.divide(k, field, out=out, where=field > 0)
+    out[k == 0] = 0.0
+    return out
 
 
 def sinkhorn(
@@ -96,21 +103,37 @@ def sinkhorn(
     theta_b = np.ones(len(k_b), dtype=np.float32)
     converged = False
     n_iter = 0
-    while n_iter < max_iter:
-        n_iter += 1
-        new_a = _scale(k_a, K @ theta_b)
-        new_b = _scale(k_b, K.T @ new_a)
-        change = max(np.max(np.abs(new_a - theta_a)), np.max(np.abs(new_b - theta_b)))
-        theta_a, theta_b = new_a, new_b
-        if change < tol:
-            converged = True
-            break
+    with threadpool_limits(limits=1, user_api="blas"), np.errstate(over="ignore", invalid="ignore"):
+        while n_iter < max_iter:
+            n_iter += 1
+            new_a = _scale(k_a, K @ theta_b)
+            new_b = _scale(k_b, K.T @ new_a)
+            if not (np.isfinite(new_a).all() and np.isfinite(new_b).all()):
+                raise ValueError(
+                    f"Sinkhorn potentials overflowed after {n_iter} iterations: the target "
+                    "degrees cannot be reached with this kernel, because too few partners lie "
+                    "within its range. Increase edges.scale or lower the degrees."
+                )
+            change = max(np.max(np.abs(new_a - theta_a)), np.max(np.abs(new_b - theta_b)))
+            theta_a, theta_b = new_a, new_b
+            if change < tol:
+                converged = True
+                break
+        exp_a = theta_a * (K @ theta_b)
+        exp_b = theta_b * (K.T @ theta_a)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        gaps = np.concatenate([np.abs(exp_a / k_a - 1), np.abs(exp_b / k_b - 1)])
+    max_error = float(np.nanmax(np.where(np.isfinite(gaps), gaps, 1.0)))
     if not converged:
         warnings.warn(
-            f"Sinkhorn did not converge in {max_iter} iterations (last change {change:.2e})",
+            f"Sinkhorn did not converge in {max_iter} iterations (largest change of a potential "
+            f"{change:.2e}); before clipping, expected degrees are within {max_error:.1%} of the "
+            "targets. Potentials that keep growing push probabilities above 1, and clipping then "
+            "removes edges: compare expected_edges with target_edges. The kernel is probably too "
+            "short for these degrees: increase edges.scale or lower the degrees.",
             stacklevel=2,
         )
-    return SinkhornResult(theta_a, theta_b, n_iter, converged)
+    return SinkhornResult(theta_a, theta_b, n_iter, converged, max_error)
 
 
 def probability_rows(pos_a, pos_b, fit: SinkhornResult, kernel, scale, start, stop) -> np.ndarray:
@@ -121,18 +144,23 @@ def probability_rows(pos_a, pos_b, fit: SinkhornResult, kernel, scale, start, st
     return P
 
 
-def sample_kernel_edges(pos_a, pos_b, fit: SinkhornResult, kernel, scale, rng) -> csr_matrix:
+def sample_kernel_edges(
+    pos_a, pos_b, fit: SinkhornResult, kernel, scale, rng, return_expected: bool = False
+):
     """Independent Bernoulli draws of every pair, row block by row block.
 
     Uniform numbers are drawn in row order, so the result does not depend on
-    the block size.
+    the block size. With ``return_expected`` the expected number of edges, the
+    sum of the clipped probabilities, is returned as well.
     """
-    blocks = []
+    blocks, expected = [], 0.0
     for start in range(0, len(pos_a), BLOCK):
         stop = min(start + BLOCK, len(pos_a))
         P = probability_rows(pos_a, pos_b, fit, kernel, scale, start, stop)
+        expected += float(P.sum(dtype=np.float64))
         blocks.append(csr_matrix(rng.random(P.shape, dtype=np.float32) < P, dtype=np.uint8))
-    return vstack(blocks, format="csr")
+    graph = vstack(blocks, format="csr")
+    return (graph, expected) if return_expected else graph
 
 
 def knn_edges(pos_a, pos_b, k: int) -> csr_matrix:

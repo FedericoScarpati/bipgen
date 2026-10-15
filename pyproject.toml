@@ -16,10 +16,11 @@ dependencies = [
     "pandas>=1.5",
     "matplotlib>=3.6",
     "pyyaml>=6.0",
+    "threadpoolctl>=3.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "pytest-cov", "ruff"]
+dev = ["pytest>=7", "pytest-cov", "ruff", "ipykernel", "nbconvert", "nbformat"]
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-jupyter"]
 
 [tool.setuptools.dynamic]

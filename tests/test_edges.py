@@ -67,3 +67,26 @@ def test_reference_values():
     got = set(zip(*G.nonzero(), strict=True))
     want = set(zip(ref["rows"].tolist(), ref["cols"].tolist(), strict=True))
     assert len(got ^ want) <= 2  # last-ulp differences of exp/BLAS across machines
+
+
+def test_potentials_do_not_depend_on_blas_threads(small):
+    from threadpoolctl import threadpool_limits
+
+    pa, pb, k_a, k_b = small
+    with threadpool_limits(limits=4, user_api="blas"):
+        a = edges.sinkhorn(pa, pb, k_a, k_b, "gaussian", 0.3)
+    b = edges.sinkhorn(pa, pb, k_a, k_b, "gaussian", 0.3)
+    assert np.array_equal(a.theta_a, b.theta_a) and np.array_equal(a.theta_b, b.theta_b)
+
+
+def test_unreachable_degrees_raise(small):
+    pa, pb, k_a, k_b = small
+    with pytest.raises(ValueError, match="Increase edges.scale"):
+        edges.sinkhorn(pa, pb, k_a * 5, k_b * 5, "gaussian", 0.02, max_iter=200)
+
+
+def test_no_convergence_warns_with_gap(small):
+    pa, pb, k_a, k_b = small
+    with pytest.warns(UserWarning, match="increase edges.scale"):
+        fit = edges.sinkhorn(pa, pb, k_a, k_b, "gaussian", 0.3, max_iter=3)
+    assert not fit.converged and 0 < fit.max_error < 1
