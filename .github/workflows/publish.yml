@@ -1,0 +1,23 @@
+name: publish
+
+# Builds the sdist and wheel and uploads them to PyPI when a release is published.
+# Uses PyPI trusted publishing: configure the project on pypi.org with this
+# repository, this workflow file and the environment "pypi"; no token is stored.
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install build
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
