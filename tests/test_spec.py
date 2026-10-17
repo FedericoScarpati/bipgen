@@ -49,7 +49,6 @@ def test_defaults():
                       "tgt": {"median": 5, "sigma": 0.5}}}, "not a free parameter"),
         ({"degrees": {"distribution": "lognormal", "bcn": {"median": 5}, "tgt": {"sigma": 1}}},
          "missing"),
-        ({"positions": {"method": "metropolis"}, "dim": 3}, "2D only"),
         ({"background": {"model": "erdos", "ratio": 0.1}}, "background.model"),
     ],
 )
@@ -79,3 +78,10 @@ def test_missing_array_key(tmp_path):
                                 "tgt": {"key": "y"}}}
     with pytest.raises(SpecError, match="not found"):
         spec_from_dict(data)
+
+
+def test_metropolis_default_grid_depends_on_dim():
+    two = make(positions={"method": "metropolis"})
+    three = make(positions={"method": "metropolis"}, dim=3)
+    assert two.positions["density"]["n_bins"] == 20
+    assert three.positions["density"]["n_bins"] == 12

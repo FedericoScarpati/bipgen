@@ -5,18 +5,21 @@
 **Uniform.** Each point gets an isotropic direction and a radius $u^{1/d}$ with $u$
 uniform in $[0, 1]$, which gives a flat density in the unit ball of dimension $d$.
 
-**Spatially correlated density (2D).** The disk is covered by an
-`n_bins x n_bins` grid, keeping the cells whose centre lies in the disk. Each cell
+**Spatially correlated density.** The domain is covered by a grid with `n_bins`
+cells per axis, keeping the cells whose centre lies in the disk or ball. Each cell
 receives a count of points. The counts come from Gamma weights with a given
 coefficient of variation, or from counts given by the user (for instance measured
 on a tissue), rescaled to the total number of points. The counts are then rearranged
 on the grid by swaps accepted with the Metropolis rule [6] under a geometric
 annealing schedule [5], until the spatial autocorrelation of the counts matches a
 target correlogram. The autocorrelation at lag $k$ is Moran's I [4] computed over the
-pairs of cells at rounded grid distance $k$; lag 1 is the 8-cell neighbourhood.
+pairs of cells at rounded grid distance $k$; lag 1 is the 8-cell neighbourhood in 2D
+and the 18-cell neighbourhood (faces and edges) in 3D.
 Swaps conserve the set of counts, so only their arrangement changes. Finally, the
-points of each cell are drawn uniformly inside it, kept inside the disk and thinned
-at random to the exact total.
+points of each cell are drawn uniformly inside it, kept inside the domain and thinned
+at random to the exact total. The density is piecewise constant on the cells, and near
+the boundary it follows the cells whose centre lies inside the domain. In 3D the
+annealing has many more cells to arrange, hence the coarser default grid.
 
 BCN and TGT are drawn together from the same density, then split at random.
 
@@ -100,7 +103,8 @@ correlogram from points (see [Observed graphs](observed.md)).
   overflow, generation stops with an error. Increase `scale` or lower the degrees.
 - **Memory.** The kernel matrix is dense during scaling ($4\,n_\mathrm{bcn} n_\mathrm{tgt}$
   bytes).
-- **Correlated densities are 2D only** in this version.
+- **Densities are measured on 2D points only**: `bipgen.density.measure` works on
+  planar positions, while generation works in 2D and 3D.
 - **Densities measured on points** carry the assumptions listed in
   [Observed graphs](observed.md).
 

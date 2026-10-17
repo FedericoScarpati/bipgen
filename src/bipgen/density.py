@@ -1,4 +1,4 @@
-"""Spatially correlated density maps in the unit disk (2D), by simulated annealing.
+"""Spatially correlated density maps in the unit disk (2D) or ball (3D), by simulated annealing.
 
 Stages:
 
@@ -10,52 +10,54 @@ Stages:
    at lags 1, 2, ... matches a target correlogram. Swaps conserve the multiset
    of counts exactly, so only the arrangement changes;
 3. **points**: each cell receives its number of points, uniformly inside the
-   cell; points outside the disk are discarded and the set is thinned at random
+   cell; points outside the domain are discarded and the set is thinned at random
    to exactly ``N``.
 """
 
 from __future__ import annotations
+
+import itertools
 
 import numpy as np
 from scipy.spatial import cKDTree
 
 
 # --------------------------------------------------------------------- grid
-def grid_mask(n_bins: int) -> tuple[np.ndarray, float]:
-    """Cells of an ``n_bins x n_bins`` grid over ``[-1, 1]^2`` whose centre lies in the disk."""
+def grid_mask(n_bins: int, dim: int = 2) -> tuple[np.ndarray, float]:
+    """Cells of a grid with ``n_bins`` cells per axis over ``[-1, 1]^dim`` whose centre
+    lies in the unit disk (``dim=2``) or ball (``dim=3``)."""
     dx = 2.0 / n_bins
     centers = -1.0 + (np.arange(n_bins) + 0.5) * dx
-    yy, xx = np.meshgrid(centers, centers, indexing="ij")
-    return xx**2 + yy**2 <= 1.0, dx
+    grids = np.meshgrid(*([centers] * dim), indexing="ij")
+    return sum(g**2 for g in grids) <= 1.0, dx
 
 
 def shell_index(mask: np.ndarray, lag: int) -> tuple[np.ndarray, np.ndarray]:
     """For every valid cell, the valid cells at rounded grid distance ``lag``.
 
     Returns neighbour ids padded with ``n`` (a sentinel) and the number of
-    valid neighbours of each cell. Lag 1 is the 8-cell queen neighbourhood.
+    valid neighbours of each cell. Lag 1 is the 8-cell neighbourhood in 2D and
+    the 18-cell neighbourhood (faces and edges) in 3D.
     """
-    side = mask.shape[0]
+    shape = np.array(mask.shape)
     cells = np.column_stack(np.nonzero(mask))
     n = len(cells)
     flat = np.full(mask.shape, -1, dtype=np.int64)
-    flat[cells[:, 0], cells[:, 1]] = np.arange(n)
+    flat[tuple(cells.T)] = np.arange(n)
     offsets = [
-        (dr, dc)
-        for dr in range(-lag, lag + 1)
-        for dc in range(-lag, lag + 1)
-        if (dr, dc) != (0, 0) and int(round(np.hypot(dr, dc))) == lag
+        o
+        for o in itertools.product(range(-lag, lag + 1), repeat=mask.ndim)
+        if any(o) and int(round(float(np.sqrt(sum(v * v for v in o))))) == lag
     ]
     idx = np.full((n, len(offsets)), n, dtype=np.int32)
     cnt = np.zeros(n, dtype=np.int32)
-    for k, (r, c) in enumerate(cells):
-        m = 0
-        for dr, dc in offsets:
-            rr, cc = r + dr, c + dc
-            if 0 <= rr < side and 0 <= cc < side and mask[rr, cc]:
-                idx[k, m] = flat[rr, cc]
-                m += 1
-        cnt[k] = m
+    for o in offsets:  # same neighbour order as a loop over offsets, cell by cell
+        nb = cells + np.array(o)
+        ok = np.all((nb >= 0) & (nb < shape), axis=1)
+        ok[ok] = mask[tuple(nb[ok].T)]
+        rows = np.flatnonzero(ok)
+        idx[rows, cnt[rows]] = flat[tuple(nb[rows].T)]
+        cnt[rows] += 1
     return idx, cnt
 
 
@@ -194,7 +196,8 @@ def occupancy_population(occupancies, n_cells: int, n_points: int, rng) -> np.nd
 
 
 def points_from_counts(counts: np.ndarray, dx: float, n_points: int, rng) -> np.ndarray:
-    """Points uniform inside their cells, kept in the disk, thinned to exactly ``n_points``."""
+    """Points uniform inside their cells, kept in the unit disk or ball, thinned to exactly
+    ``n_points``."""
     idx = np.nonzero(counts > 0)
     per_cell = counts[idx]
     cells = np.column_stack(idx)
@@ -205,14 +208,16 @@ def points_from_counts(counts: np.ndarray, dx: float, n_points: int, rng) -> np.
         pts = cand[np.sum(cand**2, axis=1) <= 1.0]
         if len(pts) >= n_points:
             rng.shuffle(pts, axis=0)
-            return pts[:n_points, ::-1].copy()  # (row, col) -> (x, y)
+            return pts[:n_points, ::-1].copy()  # grid axes (row, col[, depth]) -> (x, y[, z])
         oversample *= 1.3
-    raise RuntimeError("could not place enough points inside the disk")
+    raise RuntimeError("could not place enough points inside the domain")
 
 
-def sample_points(n_points: int, density: dict, arrays: dict, rng) -> tuple[np.ndarray, dict]:
-    """``n_points`` positions in the unit disk following ``density`` (a spec section)."""
-    mask, dx = grid_mask(int(density["n_bins"]))
+def sample_points(
+    n_points: int, density: dict, arrays: dict, rng, dim: int = 2
+) -> tuple[np.ndarray, dict]:
+    """``n_points`` positions in the unit disk or ball following ``density`` (a spec section)."""
+    mask, dx = grid_mask(int(density["n_bins"]), dim)
     n_cells = int(mask.sum())
     occ = density["occupancy"]
     if occ["source"] == "gamma":

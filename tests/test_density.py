@@ -35,3 +35,29 @@ def test_reference_values():
     pts, _ = density.sample_points(int(ref["n_points"]), spec, {"occ": ref["occupancies"]},
                                    np.random.default_rng(int(ref["seed"])))
     assert np.allclose(pts, ref["points"][:, ::-1])
+
+
+def test_grid_and_shells_in_3d():
+    mask, dx = density.grid_mask(12, 3)
+    assert mask.shape == (12, 12, 12) and dx == 2.0 / 12
+    assert abs(int(mask.sum()) - np.pi / 6 * 12**3) < 0.03 * 12**3
+    _, cnt = density.shell_index(mask, 1)
+    assert cnt.max() == 18  # faces and edges; corners are at rounded distance 2
+
+
+def test_anneal_reaches_target_in_3d():
+    mask, _ = density.grid_mask(10, 3)
+    pop = density.occupancy_population(np.random.default_rng(1).gamma(2.0, 1.0, 300),
+                                       int(mask.sum()), 8000, np.random.default_rng(2))
+    counts, rho = density.anneal(pop, mask, [0.5, 0.3], np.random.default_rng(3), sweeps=150)
+    assert counts.sum() == 8000
+    assert np.allclose(rho, [0.5, 0.3], atol=0.03)
+
+
+def test_points_in_3d_ball():
+    spec = {"n_bins": 8, "occupancy": {"source": "gamma", "cv": 0.5}, "correlogram": [0.3],
+            "sweeps": 30}
+    pts, info = density.sample_points(3000, spec, {}, np.random.default_rng(0), dim=3)
+    assert pts.shape == (3000, 3)
+    assert np.linalg.norm(pts, axis=1).max() <= 1.0
+    assert len(info["correlogram"]) == 1

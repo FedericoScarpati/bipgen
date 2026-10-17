@@ -25,12 +25,13 @@ def uniform(n: int, dim: int, rng: np.random.Generator) -> np.ndarray:
     return direction * radius[:, None]
 
 
-def metropolis(n: int, density: dict, arrays: dict, rng: np.random.Generator):
-    """``n`` points in the unit disk with a spatially correlated density (2D only).
+def metropolis(n: int, density: dict, arrays: dict, rng: np.random.Generator, dim: int = 2):
+    """``n`` points in the unit disk or ball with a spatially correlated density.
 
     Returns the points and a dictionary with the correlogram reached by the
     annealing. See :mod:`bipgen.density`.
     """
     from .density import sample_points
 
-    return sample_points(n, density, arrays, rng)
+    _check_dim(dim)
+    return sample_points(n, density, arrays, rng, dim)

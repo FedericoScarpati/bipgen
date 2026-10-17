@@ -105,11 +105,11 @@ class Spec:
             return
         if method != "metropolis":
             raise SpecError(f"positions.method must be 'uniform' or 'metropolis', got {method!r}")
-        if self.dim != 2:
-            raise SpecError("metropolis positions are 2D only in this version")
         density = self.positions.setdefault("density", {})
         _check_keys("positions.density", density, _DENSITY)
-        density["n_bins"] = _positive_int("positions.density.n_bins", density.get("n_bins", 20))
+        default_bins = 20 if self.dim == 2 else 12
+        density["n_bins"] = _positive_int("positions.density.n_bins",
+                                          density.get("n_bins", default_bins))
         density["sweeps"] = _positive_int("positions.density.sweeps", density.get("sweeps", 400))
         occ = density.setdefault("occupancy", {"source": "gamma", "cv": 0.5})
         if occ.get("source") == "gamma":

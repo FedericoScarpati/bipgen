@@ -10,7 +10,7 @@
 - `generate(spec, seed=None)`: one realization; the seed used is recorded in the graph, together with
   the target and expected numbers of edges and the Sinkhorn diagnostics.
 - `BipartiteGraph` container with geometric and background edges and an edge table.
-- Metropolis positions (2D): Gamma or given cell occupancies, rearranged by simulated annealing to
+- Metropolis positions: Gamma or given cell occupancies, rearranged by simulated annealing to
   match a target correlogram.
 - Quick plots: graph layout (2D/3D), complementary cumulative degree distributions with targets,
   edge lengths by origin.
@@ -25,6 +25,8 @@
 - `statistics`, `compare` (observed against an ensemble: mean, sd, z-score, percentile),
   `degree_ks`, `plot_comparison`.
 - Presets `c58_4`, `c58_5`, `c58_16` from the published Slide-recon datasets.
+- Metropolis positions in 3D: grid of cubic cells clipped to the unit ball, lag-1 neighbourhood of
+  18 cells, default 12 cells per axis.
 - Documented limitations: the Poisson correction of a correlogram measured on points; the shared
   density of BCN and TGT assumed by the presets.
 - Known behaviour: probabilities are clipped at 1 after Sinkhorn scaling, so dense nodes stay below

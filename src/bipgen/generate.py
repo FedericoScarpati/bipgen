@@ -23,7 +23,7 @@ def _positions(spec: Spec, rng: np.random.Generator):
         )
     if method == "metropolis":
         sites, diag = positions.metropolis(spec.n_bcn + spec.n_tgt, spec.positions["density"],
-                                           spec.arrays, rng)
+                                           spec.arrays, rng, spec.dim)
         is_tgt = np.zeros(len(sites), dtype=bool)
         is_tgt[: spec.n_tgt] = True
         rng.shuffle(is_tgt)

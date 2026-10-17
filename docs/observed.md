@@ -24,7 +24,7 @@ What is **not** inferred, and has to be chosen: the kernel scale and the backgro
 
 ## Density measured on points
 
-`bipgen.density.measure` maps the bounding box of the points to $[-1, 1]^2$, counts
+`bipgen.density.measure` takes 2D points, maps their bounding box to $[-1, 1]^2$, counts
 the points in the cells of the grid inside the disk, and computes Moran's I of the
 counts at each lag. When the points are only part of the nodes, counting noise
 inflates the variance of the counts and attenuates the correlation; the corrected

@@ -65,3 +65,12 @@ def test_overlapping_edges_rejected(spec):
     g = bipgen.generate(spec)
     with pytest.raises(ValueError, match="overlap"):
         bipgen.BipartiteGraph(g.geometric, g.geometric, g.pos_bcn, g.pos_tgt, 0)
+
+
+def test_metropolis_positions_3d():
+    spec = bipgen.spec_from_dict({**KERNEL, "dim": 3, "edges": {"model": "kernel", "scale": 0.35},
+                                  "positions": {"method": "metropolis", "density": {
+                                      "n_bins": 8, "correlogram": [0.3, 0.1], "sweeps": 30}}})
+    g = bipgen.generate(spec)
+    assert g.pos_tgt.shape == (400, 3)
+    assert np.linalg.norm(g.pos_bcn, axis=1).max() <= 1.0

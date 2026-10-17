@@ -25,8 +25,8 @@ the unit ball in 3D. Unknown keys raise `SpecError`.
 
 | Key | Values | Meaning |
 |---|---|---|
-| `method` | `uniform`, `metropolis` | uniform in the domain, or a spatially correlated density (2D only) |
-| `density.n_bins` | default `20` | grid of `n_bins x n_bins` cells over the disk |
+| `method` | `uniform`, `metropolis` | uniform in the domain, or a spatially correlated density |
+| `density.n_bins` | default `20` in 2D, `12` in 3D | cells per axis of the grid over the domain |
 | `density.occupancy` | `{source: gamma, cv: 0.5}` or `{source: file, key: ...}` | cell counts: Gamma weights with coefficient of variation `cv`, or counts from the arrays file |
 | `density.correlogram` | default `[0.3, 0.1]` | target Moran's I at lags 1, 2, ... |
 | `density.sweeps` | default `400` | annealing sweeps |
