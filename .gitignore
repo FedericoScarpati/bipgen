@@ -10,3 +10,6 @@ dist/
 coverage.xml
 site/
 .ipynb_checkpoints/
+
+# private development material, never published
+notebooks/dev/
