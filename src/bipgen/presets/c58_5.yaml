@@ -1,0 +1,34 @@
+schema: 0
+seed: 42
+dim: 2
+sizes:
+  n_bcn: 25463
+  n_tgt: 19780
+positions:
+  method: metropolis
+  density:
+    n_bins: 20
+    occupancy:
+      source: file
+      key: occupancy
+    correlogram:
+    - 0.3789
+    - 0.3299
+    sweeps: 400
+degrees:
+  distribution: empirical
+  bcn:
+    key: degrees_bcn
+  tgt:
+    key: degrees_tgt
+edges:
+  model: kernel
+  kernel: gaussian
+  scale: 0.15
+  sinkhorn:
+    tol: 0.001
+    max_iter: 2000
+background:
+  model: none
+  ratio: 0.0
+arrays: c58_5.npz

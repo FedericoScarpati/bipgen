@@ -1,0 +1,22 @@
+{
+  "source": "Slide-recon (Hu et al., Nat. Biotechnol. 2025), dataset c58_4, Single Cell Portal SCP2577; counts binarized, isolated nodes dropped",
+  "positions_known_bcn": 15535,
+  "correlogram_raw": [
+    0.3217,
+    0.2164
+  ],
+  "statistics": {
+    "n_bcn": 26781,
+    "n_tgt": 18892,
+    "n_edges": 2726606,
+    "bcn_degree_mean": 101.81120943952803,
+    "bcn_degree_median": 92.0,
+    "bcn_degree_p90": 166.0,
+    "bcn_degree_max": 618,
+    "tgt_degree_mean": 144.3259580774931,
+    "tgt_degree_median": 128.0,
+    "tgt_degree_p90": 239.0,
+    "tgt_degree_max": 800,
+    "giant_component_fraction": 1.0
+  }
+}

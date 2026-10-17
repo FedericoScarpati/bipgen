@@ -110,3 +110,28 @@ def plot_edge_lengths(graph, ax=None, bins=60):
     ax.legend(fontsize=8, frameon=False)
     _style(ax)
     return ax
+
+
+def plot_comparison(table, ax=None):
+    """z-score of each observed statistic within the ensemble; the band marks |z| <= 2.
+
+    Statistics with no spread in the ensemble have no z-score: they are drawn as
+    hollow markers at 0 and labelled "no spread".
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=(5, 0.3 * len(table) + 1))
+    z = table["z"].to_numpy(dtype=float)
+    y = np.arange(len(table))[::-1]
+    finite = np.isfinite(z)
+    ax.axvspan(-2, 2, color=COLORS["geometric"], alpha=0.15, lw=0)
+    ax.axvline(0, color=COLORS["geometric"], lw=1)
+    ax.scatter(z[finite], y[finite], s=36, color=COLORS["bcn"], zorder=3,
+               edgecolors="white", linewidths=2)
+    ax.scatter(np.zeros((~finite).sum()), y[~finite], s=36, facecolors="white", zorder=3,
+               edgecolors=COLORS["ink"], linewidths=1.2)
+    labels = [name if ok else f"{name} (no spread)" for name, ok in zip(table.index, finite,
+                                                                        strict=True)]
+    ax.set_yticks(y, labels=labels, fontsize=8)
+    ax.set_xlabel("z-score of the observed value in the ensemble", fontsize=9)
+    _style(ax)
+    return ax

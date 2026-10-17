@@ -13,9 +13,19 @@
 - Metropolis positions (2D): Gamma or given cell occupancies, rearranged by simulated annealing to
   match a target correlogram.
 - Quick plots: graph layout (2D/3D), complementary cumulative degree distributions with targets,
-  edge lengths by origin. Development notebook `notebooks/00_dev_playground.ipynb`.
+  edge lengths by origin.
 - Sinkhorn runs on one BLAS thread (faster on shared machines, potentials independent of the
   thread count); overflowing potentials raise an error instead of returning an empty graph;
   the non-convergence warning reports the gap before clipping and points to the clipping loss.
+- Native save/load (`edges.csv`, `nodes.csv`, `spec.yaml`, `info.json`), CSV edge-list reader, and
+  export to the layout read by spatial-graph-algorithms (`to_sga`).
+- Descriptor registry: node degree, edge degree sum.
+- `spec_from_graph`: sizes and degrees of an observed graph, and density occupancies and correlogram
+  of known positions for Metropolis positions; kernel scale and background are chosen by the user.
+- `statistics`, `compare` (observed against an ensemble: mean, sd, z-score, percentile),
+  `degree_ks`, `plot_comparison`.
+- Presets `c58_4`, `c58_5`, `c58_16` from the published Slide-recon datasets.
+- Documented limitations: the Poisson correction of a correlogram measured on points; the shared
+  density of BCN and TGT assumed by the presets.
 - Known behaviour: probabilities are clipped at 1 after Sinkhorn scaling, so dense nodes stay below
   their target degree when the kernel is short.

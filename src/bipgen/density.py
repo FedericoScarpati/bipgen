@@ -223,3 +223,43 @@ def sample_points(n_points: int, density: dict, arrays: dict, rng) -> tuple[np.n
     counts, rho = anneal(pop, mask, density["correlogram"], rng, sweeps=int(density["sweeps"]))
     pts = points_from_counts(counts, dx, n_points, rng)
     return pts, {"correlogram": [float(r) for r in rho]}
+
+
+# ------------------------------------------------------------- measurement
+def _moran(values: np.ndarray, idx: np.ndarray, cnt: np.ndarray) -> float:
+    z = values - values.mean()
+    var = float((z**2).mean())
+    if var <= 0:
+        return float("nan")
+    return 0.5 * float((z * _neighbour_sums(z, idx)).sum()) / (0.5 * float(cnt.sum()) * var)
+
+
+def measure(points: np.ndarray, n_bins: int = 20, n_lags: int = 2) -> dict:
+    """Cell occupancies and correlogram of a set of 2D points (for example, measured positions).
+
+    The bounding box of the points is mapped to ``[-1, 1]^2`` axis by axis and the
+    counts are taken on the cells of :func:`grid_mask`. When the points are only a
+    sample of the nodes, Poisson counting noise inflates the variance of the
+    counts and attenuates Moran's I; the corrected correlogram multiplies it by
+    ``var / (var - mean)``, which estimates the autocorrelation of the underlying
+    density (counts modelled as Poisson draws around it). The correction is
+    undefined when the variance does not exceed the mean.
+
+    Limitation: the correction assumes Poisson counts and tends to overestimate
+    the correlation when the known points are a large fraction of the nodes; it
+    also becomes unstable when cells hold few points, because the factor
+    ``var / (var - mean)`` grows large.
+    """
+    pts = np.asarray(points, dtype=float)
+    pts = pts[np.isfinite(pts).all(axis=1)]
+    lo, hi = pts.min(axis=0), pts.max(axis=0)
+    norm = 2 * (pts - lo) / (hi - lo) - 1
+    mask, _ = grid_mask(n_bins)
+    H, _, _ = np.histogram2d(norm[:, 0], norm[:, 1], bins=n_bins, range=[[-1, 1], [-1, 1]])
+    occ = H[mask]
+    raw = np.array([_moran(occ, *shell_index(mask, lag)) for lag in range(1, n_lags + 1)])
+    var, mean = float(occ.var()), float(occ.mean())
+    factor = var / (var - mean) if var > mean else float("nan")
+    return {"occupancy": occ, "correlogram_raw": raw.tolist(),
+            "correlogram": (raw * factor).tolist(), "attenuation": factor,
+            "n_points": int(len(pts))}

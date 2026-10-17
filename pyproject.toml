@@ -29,6 +29,9 @@ version = { attr = "bipgen.__version__" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+bipgen = ["presets/*.yaml", "presets/*.npz", "presets/*.json", "presets/README.md"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
