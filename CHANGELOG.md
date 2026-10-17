@@ -1,33 +1,35 @@
 # Changelog
 
-## Unreleased
+## Unreleased (first public version, 0.1.0)
 
-- Package skeleton and draft specification format (default seed 42).
-- Seed streams, kernel registry (Gaussian), degree sequences, uniform positions in 2D and 3D.
-- Kernel model with Sinkhorn degree matching and block-wise Bernoulli sampling; k-nearest-neighbour model.
-- Background edges, uniform or proportional to node weights.
-- YAML specification with defaults and strict validation (unknown keys are rejected).
-- `generate(spec, seed=None)`: one realization; the seed used is recorded in the graph, together with
-  the target and expected numbers of edges and the Sinkhorn diagnostics.
-- `BipartiteGraph` container with geometric and background edges and an edge table.
-- Metropolis positions: Gamma or given cell occupancies, rearranged by simulated annealing to
-  match a target correlogram.
-- Quick plots: graph layout (2D/3D), complementary cumulative degree distributions with targets,
-  edge lengths by origin.
-- Sinkhorn runs on one BLAS thread (faster on shared machines, potentials independent of the
-  thread count); overflowing potentials raise an error instead of returning an empty graph;
-  the non-convergence warning reports the gap before clipping and points to the clipping loss.
-- Native save/load (`edges.csv`, `nodes.csv`, `spec.yaml`, `info.json`), CSV edge-list reader, and
-  export to the layout read by spatial-graph-algorithms (`to_sga`).
-- Descriptor registry: node degree, edge degree sum.
-- `spec_from_graph`: sizes and degrees of an observed graph, and density occupancies and correlogram
-  of known positions for Metropolis positions; kernel scale and background are chosen by the user.
-- `statistics`, `compare` (observed against an ensemble: mean, sd, z-score, percentile),
-  `degree_ks`, `plot_comparison`.
-- Presets `c58_4`, `c58_5`, `c58_16` from the published Slide-recon datasets.
-- Metropolis positions in 3D: grid of cubic cells clipped to the unit ball, lag-1 neighbourhood of
-  18 cells, default 12 cells per axis.
-- Documented limitations: the Poisson correction of a correlogram measured on points; the shared
-  density of BCN and TGT assumed by the presets.
-- Known behaviour: probabilities are clipped at 1 after Sinkhorn scaling, so dense nodes stay below
-  their target degree when the kernel is short.
+- **Specification**: one YAML file (or dictionary) per ensemble, with defaults and strict
+  validation; default seed 42, overridable when generating; the seed used is recorded in
+  every graph.
+- **Positions**: uniform in the unit disk or ball; spatially correlated densities in 2D and 3D,
+  with cell counts arranged by Metropolis annealing to match a target correlogram (Moran's I
+  at several lags).
+- **Degrees**: lognormal, constant or empirical target sequences, integer, with equal totals
+  on the two sides.
+- **Geometric edges**: Gaussian kernel with node weights fitted by Sinkhorn scaling to the
+  target degrees, sampled block by block; or each BCN linked to its k nearest TGT. Kernels
+  live in a registry.
+- **Background edges**: uniform or proportional to node degrees, in a given ratio to the
+  geometric edges; each edge records its origin.
+- **Reproducibility**: independent random streams spawned from one seed; Sinkhorn scaling on
+  one BLAS thread, so results do not depend on the number of cores.
+- **Observed graphs**: specification from a biadjacency matrix (sizes, degree sequences,
+  density of known positions); summary statistics and Monte Carlo comparison of an observed
+  graph with an ensemble; Kolmogorov-Smirnov distances of degree distributions.
+- **Input and output**: native directory format, CSV edge lists, export for the
+  spatial-graph-algorithms package.
+- **Descriptors**: registry with node degree and edge degree sum.
+- **Presets**: `c58_4`, `c58_5`, `c58_16`, built from published Slide-recon arrays.
+- **Figures**: layout in 2D and 3D, degree distributions, edge lengths, comparison with an
+  ensemble.
+- **Documentation**: user guide, model with its literature sources, two tutorials.
+
+Known limitations are listed in the documentation (*The model* and *Observed graphs*):
+clipping of probabilities at 1 lowers the degrees of dense nodes for short kernels; very
+short kernels prevent Sinkhorn scaling from converging; the kernel matrix is dense while it
+is fitted; the Poisson correction of a correlogram measured on points tends to overestimate
+it when the known points are a large fraction of the nodes.
