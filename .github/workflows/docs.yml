@@ -1,0 +1,22 @@
+name: docs
+
+# Built and published on demand or when a release is published, not on every push.
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[docs,dev]"
+      - run: mkdocs gh-deploy --force --strict

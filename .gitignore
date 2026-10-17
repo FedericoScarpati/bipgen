@@ -13,3 +13,4 @@ site/
 
 # private development material, never published
 notebooks/dev/
+.cache/

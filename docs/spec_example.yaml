@@ -1,4 +1,4 @@
-# bipgen specification: DRAFT v0, to be reviewed before implementation.
+# Example bipgen specification (schema 0).
 # One file fully determines an ensemble; a seed picks one realization.
 # Units: the domain is the unit disk (dim 2) or the unit ball (dim 3);
 # every length below is in units of the domain radius.

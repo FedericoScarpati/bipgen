@@ -1,0 +1,15 @@
+# To complete before the first release: license, affiliations, co-authors, DOI.
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "bipgen: spatial bipartite proximity graphs from degree-matched null models"
+type: software
+authors:
+  - family-names: Scarpati
+    given-names: Federico
+repository-code: "https://github.com/FedericoScarpati/bipgen"
+keywords:
+  - spatial networks
+  - bipartite graphs
+  - random geometric graphs
+  - Sinkhorn scaling
+  - spatial omics
