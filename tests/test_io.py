@@ -1,5 +1,3 @@
-import json
-
 import numpy as np
 import pytest
 
@@ -42,22 +40,3 @@ def test_read_edge_list(tmp_path):
     path.write_text("bcn,tgt,weight\n0,1,5\n0,1,2\n2,0,1\n")
     adj = bipgen.read_edge_list(path)
     assert adj.shape == (3, 2) and adj.nnz == 2 and adj.max() == 1
-
-
-def test_to_sga_files(graph, tmp_path):
-    from scipy.sparse import load_npz
-
-    root = bipgen.to_sga(graph, tmp_path / "sga")
-    adj = load_npz(root / "adjacency.npz")
-    n = graph.n_bcn + graph.n_tgt
-    assert adj.shape == (n, n) and (adj != adj.T).nnz == 0 and adj.nnz == 2 * graph.n_edges
-    assert np.load(root / "positions.npy").shape == (n, 3)
-    meta = json.loads((root / "metadata.json").read_text())
-    assert meta["seed"] == 3 and meta["n_bcn"] == graph.n_bcn
-
-
-def test_to_sga_loads_in_sga(graph, tmp_path):
-    benchmark_io = pytest.importorskip("spatial_graph_algorithms.compare.benchmark_io")
-    sg = benchmark_io.load_benchmark_graph(bipgen.to_sga(graph, tmp_path / "sga"))
-    assert sg.adjacency_matrix.shape[0] == graph.n_bcn + graph.n_tgt
-    assert int(sg.edge_metadata["is_false"].sum()) == graph.background.nnz

@@ -5,6 +5,7 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
+from matplotlib.ticker import NullFormatter
 
 # Categorical slots 1-3 of a colour-blind-checked palette, plus neutral greys.
 COLORS = {
@@ -87,6 +88,7 @@ def plot_degrees(graph, axes=None):
                     label="target")
         ax.set_xscale("log")
         ax.set_yscale("log")
+        ax.xaxis.set_minor_formatter(NullFormatter())  # no labels on minor ticks: they overlap
         ax.set_xlabel(f"{side.upper()} degree k", fontsize=9)
         ax.set_ylabel("fraction of nodes with degree ≥ k", fontsize=9)
         ax.legend(fontsize=8, frameon=False)

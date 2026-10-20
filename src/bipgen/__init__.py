@@ -14,7 +14,7 @@ from .compare import compare, degree_ks, statistics
 from .fit import spec_from_graph
 from .generate import generate
 from .graph import BipartiteGraph
-from .io import load, read_edge_list, save, to_sga
+from .io import load, read_edge_list, save
 from .plot import plot_comparison, plot_degrees, plot_edge_lengths, plot_graph
 from .spec import Spec, SpecError, load_spec, spec_from_dict
 
@@ -41,5 +41,4 @@ __all__ = [
     "spec_from_dict",
     "spec_from_graph",
     "statistics",
-    "to_sga",
 ]

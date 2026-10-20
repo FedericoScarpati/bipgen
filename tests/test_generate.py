@@ -1,3 +1,5 @@
+import importlib
+
 import numpy as np
 import pytest
 
@@ -61,6 +63,26 @@ def test_metropolis_positions():
     assert g.pos_bcn.shape == (300, 2) and len(g.info["correlogram"]) == 2
 
 
+def test_configuration_background_uses_fitted_weights(spec, monkeypatch):
+    module = importlib.import_module("bipgen.generate")
+    seen = {}
+    sinkhorn, background_edges = module.edges.sinkhorn, module.background_edges
+
+    def fit(*args, **kwargs):
+        seen["fit"] = sinkhorn(*args, **kwargs)
+        return seen["fit"]
+
+    def background(geometric, ratio, model, rng, weights_a, weights_b):
+        seen["weights"] = (weights_a, weights_b)
+        return background_edges(geometric, ratio, model, rng, weights_a, weights_b)
+
+    monkeypatch.setattr(module.edges, "sinkhorn", fit)
+    monkeypatch.setattr(module, "background_edges", background)
+    bipgen.generate(spec)
+    assert seen["weights"][0] is seen["fit"].theta_a
+    assert seen["weights"][1] is seen["fit"].theta_b
+
+
 def test_overlapping_edges_rejected(spec):
     g = bipgen.generate(spec)
     with pytest.raises(ValueError, match="overlap"):
@@ -74,3 +96,13 @@ def test_metropolis_positions_3d():
     g = bipgen.generate(spec)
     assert g.pos_tgt.shape == (400, 3)
     assert np.linalg.norm(g.pos_bcn, axis=1).max() <= 1.0
+
+
+def test_file_positions_used_as_given():
+    rng = np.random.default_rng(0)
+    p, q = rng.uniform(-0.7, 0.7, (300, 2)), rng.uniform(-0.7, 0.7, (400, 2))
+    spec = bipgen.spec_from_dict({**KERNEL, "positions": {"method": "file", "bcn": "p", "tgt": "q"},
+                                  "arrays": {"p": p, "q": q}})
+    g = bipgen.generate(spec)
+    assert np.array_equal(g.pos_bcn, p) and np.array_equal(g.pos_tgt, q)
+    assert g.geometric.nnz > 0

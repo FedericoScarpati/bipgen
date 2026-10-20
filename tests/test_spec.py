@@ -43,13 +43,18 @@ def test_defaults():
         ({"edges": {"model": "kernel", "scale": 0.2, "kernal": "x"}}, "unknown keys"),
         ({"edges": {"model": "kernel", "kernel": "nope", "scale": 0.2}}, "not registered"),
         ({"edges": {"model": "kernel"}}, "scale"),
-        ({"edges": {"model": "knn"}}, "edges.k"),
-        ({"edges": {"model": "knn", "k": 500}}, "exceeds"),
+        ({"edges": {"model": "knn"}, "degrees": None}, "edges.k"),
+        ({"edges": {"model": "knn", "k": 500}, "degrees": None}, "exceeds"),
+        ({"edges": {"model": "knn", "k": 5}}, "not used with edges.model 'knn'"),
         ({"degrees": {"distribution": "lognormal", "bcn": {"median": 5, "sigma": 0.5},
                       "tgt": {"median": 5, "sigma": 0.5}}}, "not a free parameter"),
         ({"degrees": {"distribution": "lognormal", "bcn": {"median": 5}, "tgt": {"sigma": 1}}},
          "missing"),
         ({"background": {"model": "erdos", "ratio": 0.1}}, "background.model"),
+        ({"positions": {"method": "grid"}}, "positions.method"),
+        ({"positions": {"method": "uniform", "bcn": "p"}}, "only used with method 'file'"),
+        ({"positions": {"method": "file", "tgt": "q"}}, "positions.bcn is required"),
+        ({"positions": {"method": "file", "bcn": "p", "tgt": "q"}}, "not found"),
     ],
 )
 def test_invalid(changes, message):
@@ -85,3 +90,11 @@ def test_metropolis_default_grid_depends_on_dim():
     three = make(positions={"method": "metropolis"}, dim=3)
     assert two.positions["density"]["n_bins"] == 20
     assert three.positions["density"]["n_bins"] == 12
+
+
+def test_file_positions_from_dict():
+    arrays = {"p": np.zeros((100, 2)), "q": np.zeros((150, 2))}
+    spec = make(positions={"method": "file", "bcn": "p", "tgt": "q"}, arrays=arrays)
+    assert spec.arrays_file is None and spec.arrays["q"].shape == (150, 2)
+    with pytest.raises(SpecError, match="expected \\(100, 3\\)"):
+        make(positions={"method": "file", "bcn": "p", "tgt": "q"}, arrays=arrays, dim=3)

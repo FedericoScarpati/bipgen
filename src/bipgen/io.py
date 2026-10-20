@@ -7,9 +7,6 @@ Native format, one directory per graph:
   in 3D), ``target_degree`` (empty for the kNN model);
 * ``spec.yaml`` (and ``spec.npz`` when the specification holds arrays);
 * ``info.json``: seed and generation diagnostics.
-
-:func:`to_sga` writes the layout read by ``load_benchmark_graph`` of the
-spatial-graph-algorithms package.
 """
 
 from __future__ import annotations
@@ -19,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.sparse import csr_matrix, save_npz
+from scipy.sparse import csr_matrix
 
 from .graph import ORIGINS, BipartiteGraph
 from .spec import load_spec
@@ -88,37 +85,3 @@ def read_edge_list(path, bcn: str = "bcn", tgt: str = "tgt", shape=None) -> csr_
     adj = csr_matrix((np.ones(len(rows), dtype=np.uint8), (rows, cols)), shape=shape)
     adj.data[:] = 1
     return adj
-
-
-def to_sga(graph: BipartiteGraph, path) -> Path:
-    """Write the files read by ``load_benchmark_graph`` of spatial-graph-algorithms.
-
-    Nodes are numbered BCN first (``0 .. n_bcn - 1``), then TGT. Background
-    edges are marked ``is_false``. Load with ``keep_lcc=False`` semantics
-    (``load_benchmark_graph`` does so) to keep this numbering. That package
-    locates the two sides of a bipartite graph by position, assuming
-    ``n_bcn == n // ratio`` for an integer ``ratio``; graphs with other side
-    sizes load fine but its bipartite-specific routines may misplace the split.
-    """
-    root = Path(path)
-    root.mkdir(parents=True, exist_ok=True)
-    n_bcn, n = graph.n_bcn, graph.n_bcn + graph.n_tgt
-    coo = graph.biadjacency.tocoo()
-    rows, cols = coo.row.astype(np.int64), coo.col.astype(np.int64) + n_bcn
-    sym = csr_matrix((np.ones(2 * len(rows)), (np.r_[rows, cols], np.r_[cols, rows])), shape=(n, n))
-    save_npz(root / "adjacency.npz", sym)
-    np.save(root / "positions.npy", np.vstack([graph.pos_bcn, graph.pos_tgt]))
-    table = graph.edges()
-    pd.DataFrame({
-        "source": table["bcn"].to_numpy(),
-        "target": table["tgt"].to_numpy() + n_bcn,
-        "edge_id": np.arange(len(table)),
-        "is_false": (table["origin"] == "background").to_numpy(),
-    }).to_csv(root / "edge_metadata.csv", index=False)
-    pd.DataFrame({"node_id": np.arange(n),
-                  "side": ["bcn"] * n_bcn + ["tgt"] * graph.n_tgt}).to_csv(
-        root / "node_metadata.csv", index=False)
-    meta = {"generator": "bipgen", "seed": graph.seed, "n_bcn": n_bcn, "n_tgt": graph.n_tgt,
-            **{k: v for k, v in graph.info.items() if k != "seed"}}
-    (root / "metadata.json").write_text(json.dumps(meta, indent=2))
-    return root

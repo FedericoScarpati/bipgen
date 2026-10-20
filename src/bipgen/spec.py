@@ -21,7 +21,7 @@ SCHEMA = 0
 _TOP = {"schema", "seed", "dim", "sizes", "positions", "degrees", "edges", "background", "arrays"}
 _SECTIONS = {
     "sizes": {"n_bcn", "n_tgt"},
-    "positions": {"method", "density"},
+    "positions": {"method", "density", "bcn", "tgt"},
     "degrees": {"distribution", "bcn", "tgt"},
     "edges": {"model", "kernel", "scale", "sinkhorn", "k"},
     "background": {"model", "ratio"},
@@ -99,12 +99,28 @@ class Spec:
 
     def _validate_positions(self) -> None:
         method = self.positions.setdefault("method", "uniform")
+        if method not in ("uniform", "metropolis", "file"):
+            raise SpecError("positions.method must be 'uniform', 'metropolis' or 'file', "
+                            f"got {method!r}")
+        if method != "metropolis" and "density" in self.positions:
+            raise SpecError("positions.density is only used with method 'metropolis'")
+        if method != "file" and {"bcn", "tgt"} & set(self.positions):
+            raise SpecError("positions.bcn and positions.tgt are only used with method 'file'")
         if method == "uniform":
-            if "density" in self.positions:
-                raise SpecError("positions.density is only used with method 'metropolis'")
             return
-        if method != "metropolis":
-            raise SpecError(f"positions.method must be 'uniform' or 'metropolis', got {method!r}")
+        if method == "file":
+            for side, n in (("bcn", self.n_bcn), ("tgt", self.n_tgt)):
+                if side not in self.positions:
+                    raise SpecError(f"positions.{side} is required with method 'file'")
+                key = self.positions[side]
+                self._require_array(key, f"positions.{side}")
+                shape = np.shape(self.arrays[key])
+                if shape != (n, self.dim):
+                    raise SpecError(f"positions.{side}: array {key!r} has shape {shape}, "
+                                    f"expected ({n}, {self.dim})")
+                if not np.isfinite(self.arrays[key]).all():
+                    raise SpecError(f"positions.{side}: array {key!r} has non-finite values")
+            return
         density = self.positions.setdefault("density", {})
         _check_keys("positions.density", density, _DENSITY)
         default_bins = 20 if self.dim == 2 else 12
@@ -129,6 +145,9 @@ class Spec:
     def _validate_edges(self) -> None:
         model = self.edges.setdefault("model", "kernel")
         if model == "knn":
+            if self.degrees is not None:
+                raise SpecError("the degrees section is not used with edges.model 'knn': each BCN "
+                                "links to its k nearest TGT; remove it")
             if "k" not in self.edges:
                 raise SpecError("edges.k is required with model 'knn'")
             k = _positive_int("edges.k", self.edges["k"])
@@ -210,11 +229,17 @@ class Spec:
 
 
 def spec_from_dict(data: dict, base_dir=None) -> Spec:
-    """Build and validate a :class:`Spec` from a dictionary in the YAML layout."""
+    """Build and validate a :class:`Spec` from a dictionary in the YAML layout.
+
+    ``arrays`` is the name of a ``.npz`` file, relative to ``base_dir``, or a
+    dictionary of arrays.
+    """
     data = copy.deepcopy(data or {})
     _check_keys("specification", data, _TOP)
     arrays, arrays_file = {}, data.pop("arrays", None)
-    if arrays_file:
+    if isinstance(arrays_file, dict):
+        arrays, arrays_file = {k: np.asarray(v) for k, v in arrays_file.items()}, None
+    elif arrays_file:
         npz = Path(base_dir or ".") / arrays_file
         with np.load(npz) as f:
             arrays = {k: f[k] for k in f.files}

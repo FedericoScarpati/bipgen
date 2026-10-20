@@ -2,7 +2,8 @@
 
 The number of background edges is ``ratio`` times the number of geometric
 edges. Endpoints are drawn uniformly (``uniform``) or with probability
-proportional to node weights, usually the target degrees (``configuration``).
+proportional to node weights (``configuration``): in :func:`bipgen.generate`, the
+Sinkhorn weights of the kernel model, or the realized degrees of the kNN model.
 Pairs that are already linked, and repeated pairs, are rejected.
 """
 
@@ -48,8 +49,9 @@ def background_edges(
     else:
         if weights_a is None or weights_b is None:
             raise ValueError("the configuration model needs node weights for both sides")
-        p_a = np.asarray(weights_a, dtype=float) / np.sum(weights_a)
-        p_b = np.asarray(weights_b, dtype=float) / np.sum(weights_b)
+        p_a = np.asarray(weights_a, dtype=np.float64)
+        p_b = np.asarray(weights_b, dtype=np.float64)
+        p_a, p_b = p_a / p_a.sum(), p_b / p_b.sum()
 
     coo = geometric.tocoo()
     taken = np.sort(coo.row.astype(np.int64) * n_b + coo.col)

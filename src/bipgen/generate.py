@@ -28,6 +28,10 @@ def _positions(spec: Spec, rng: np.random.Generator):
         is_tgt[: spec.n_tgt] = True
         rng.shuffle(is_tgt)
         return sites[~is_tgt], sites[is_tgt], diag
+    if method == "file":
+        arrays = spec.arrays
+        return (np.array(arrays[spec.positions["bcn"]], dtype=float),
+                np.array(arrays[spec.positions["tgt"]], dtype=float), {})
     raise ValueError(f"unknown positions method {method!r}")
 
 
@@ -64,7 +68,8 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
         geometric, expected = edges.sample_kernel_edges(
             pos_bcn, pos_tgt, fit, name, scale, rng["edges"], return_expected=True
         )
-        weights = targets = (k_bcn, k_tgt)
+        targets = (k_bcn, k_tgt)
+        weights = (fit.theta_a, fit.theta_b)  # background: the fitted node weights
         info.update(target_edges=int(k_bcn.sum()), expected_edges=expected,
                     sinkhorn_iterations=fit.n_iter, sinkhorn_converged=fit.converged,
                     sinkhorn_max_error=fit.max_error)
