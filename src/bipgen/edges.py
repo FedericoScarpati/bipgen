@@ -158,7 +158,12 @@ def sample_kernel_edges(
         stop = min(start + BLOCK, len(pos_a))
         P = probability_rows(pos_a, pos_b, fit, kernel, scale, start, stop)
         expected += float(P.sum(dtype=np.float64))
-        blocks.append(csr_matrix(rng.random(P.shape, dtype=np.float32) < P, dtype=np.uint8))
+        # Keep the uniforms in float64. In float32 they are multiples of 2**-24, so an
+        # exact 0 comes out with probability ~6e-8, and 0 < P holds for every P > 0:
+        # every pair with 0 < P < 2**-24 (nearly all distant pairs) became an edge with
+        # probability ~6e-8 instead of P, i.e. tens of long "kernel" edges in a large
+        # graph. In float64 an exact 0 has probability 2**-53.
+        blocks.append(csr_matrix(rng.random(P.shape) < P, dtype=np.uint8))
     graph = vstack(blocks, format="csr")
     return (graph, expected) if return_expected else graph
 
