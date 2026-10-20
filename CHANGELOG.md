@@ -6,22 +6,21 @@
   validation; default seed 42, overridable when generating; the seed used is recorded in
   every graph.
 - **Positions**: uniform in the unit disk or ball; spatially correlated densities in 2D and 3D,
-  with cell counts arranged by Metropolis annealing to match a target correlogram (Moran's I
-  at several lags).
+  with cell counts arranged by Metropolis annealing to match a target correlogram (spatial
+  correlation between nearby cells, Moran's I, at several lags); or given by the user.
 - **Degrees**: lognormal, constant or empirical target sequences, integer, with equal totals
   on the two sides.
 - **Geometric edges**: Gaussian kernel with node weights fitted by Sinkhorn scaling to the
   target degrees, sampled block by block; or each BCN linked to its k nearest TGT. Kernels
   live in a registry.
-- **Background edges**: uniform or proportional to node degrees, in a given ratio to the
-  geometric edges; each edge records its origin.
+- **Background edges**: uniform or proportional to the fitted node weights (realized degrees
+  for the kNN model), in a given ratio to the geometric edges; each edge records its origin.
 - **Reproducibility**: independent random streams spawned from one seed; Sinkhorn scaling on
   one BLAS thread, so results do not depend on the number of cores.
 - **Observed graphs**: specification from a biadjacency matrix (sizes, degree sequences,
   density of known positions); summary statistics and Monte Carlo comparison of an observed
   graph with an ensemble; Kolmogorov-Smirnov distances of degree distributions.
-- **Input and output**: native directory format, CSV edge lists, export for the
-  spatial-graph-algorithms package.
+- **Input and output**: native directory format, CSV edge lists.
 - **Descriptors**: registry with node degree and edge degree sum.
 - **Presets**: `c58_4`, `c58_5`, `c58_16`, built from published Slide-recon arrays.
 - **Figures**: layout in 2D and 3D, degree distributions, edge lengths, comparison with an

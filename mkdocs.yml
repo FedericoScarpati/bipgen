@@ -25,7 +25,7 @@ nav:
       - Specification format: specification.md
       - The model: model.md
       - Observed graphs: observed.md
-      - Saving and exporting: io.md
+      - Saving and loading: io.md
       - Presets: presets.md
   - Tutorials:
       - Getting started: tutorials/01_getting_started.ipynb

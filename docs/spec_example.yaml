@@ -13,15 +13,18 @@ sizes:
   n_tgt: 5000      # nodes of side B (columns)
 
 positions:
-  method: uniform  # uniform | metropolis
-  # metropolis only (2D in v0.1): an occupancy map on an n_bins x n_bins grid
-  # clipped to the disk, rearranged by simulated annealing until its spatial
-  # autocorrelation matches the target correlogram.
+  method: uniform  # uniform | metropolis | file
+  # metropolis only: node counts on a grid with n_bins cells per axis, clipped to
+  # the disk or ball, rearranged by simulated annealing to bring their spatial
+  # correlation towards the target correlogram.
   # density:
-  #   n_bins: 20
+  #   n_bins: 20                            # 12 by default in 3D
   #   occupancy: {source: gamma, cv: 0.5}   # or {source: file, key: occupancy}
-  #   correlogram: [0.30, 0.10]            # target autocorrelation at lags 1, 2
-  #   sweeps: 400
+  #   correlogram: [0.30, 0.10]            # correlation between cells 1, 2 cells apart
+  #   sweeps: 400                           # one swap proposed per cell per sweep
+  # file only: names of the (n_bcn, dim) and (n_tgt, dim) arrays in the arrays file
+  # bcn: pos_bcn
+  # tgt: pos_tgt
 
 degrees:           # target degrees (integers), matched in expectation by Sinkhorn scaling
   distribution: lognormal   # lognormal | constant | empirical
@@ -41,7 +44,7 @@ edges:
   # k: 10
 
 background:        # edges unrelated to distance, drawn after the geometric ones
-  model: uniform   # none | uniform | configuration (endpoints ~ target degrees)
+  model: uniform   # none | uniform | configuration (endpoints ~ fitted node weights)
   ratio: 0.05      # background edges per geometric edge
 
 arrays: null       # optional companion .npz with the arrays referenced above

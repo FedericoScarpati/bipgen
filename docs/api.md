@@ -19,12 +19,11 @@
 ::: bipgen.compare.compare
 ::: bipgen.compare.degree_ks
 
-## Saving and exporting
+## Saving and loading
 
 ::: bipgen.io.save
 ::: bipgen.io.load
 ::: bipgen.io.read_edge_list
-::: bipgen.io.to_sga
 
 ## Descriptors
 

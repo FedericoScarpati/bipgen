@@ -18,8 +18,10 @@ pytest
 
 The documentation is built with `pip install -e ".[docs]"` and `mkdocs serve`.
 
-## Memory and time
+## Hardware requirements
 
-Fitting the kernel model holds one dense `n_bcn x n_tgt` matrix of 32-bit floats:
-about 2 GB for 27 000 x 19 000 nodes. Sampling works on row blocks and needs little
-memory. One realization of that size takes about half a minute on one core.
+- **CPU**: one realization runs on one core, in about half a minute for
+  27 000 x 19 000 nodes. Independent realizations can run in parallel processes.
+- **Memory**: fitting the kernel model holds one dense `n_bcn x n_tgt` matrix of 32-bit
+  floats, about 2 GB for 27 000 x 19 000 nodes. Sampling works on row blocks.
+- **Disk**: a saved graph takes about 22 bytes per edge.

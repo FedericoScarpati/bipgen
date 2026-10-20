@@ -2,12 +2,12 @@
 
 Spatial bipartite proximity graphs from degree-matched null models.
 
-bipgen places two populations of nodes, BCN and TGT, in the unit disk (2D) or the
-unit ball (3D) and links them with a probability that decays with distance. Node
+bipgen places two populations of nodes, BCN (beacons) and TGT (targets), in the unit
+disk (2D) or the unit ball (3D) and links them with a probability that decays with distance. Node
 weights are fitted by Sinkhorn scaling so that expected degrees match a target
 degree sequence, which can be taken from an observed graph. Background edges,
-unrelated to distance, can be added in a chosen proportion. Positions can be uniform
-or follow a spatially correlated density.
+unrelated to distance, can be added in a chosen proportion. Positions can be uniform,
+follow a spatially correlated density, or be given.
 
 Every graph is described by one YAML specification; a seed selects one realization.
 
@@ -28,7 +28,7 @@ import bipgen
 spec = bipgen.spec_from_dict({
     "sizes": {"n_bcn": 2000, "n_tgt": 3000},
     "degrees": {"distribution": "lognormal", "bcn": {"median": 15, "sigma": 0.5},
-                "tgt": {"sigma": 0.6}},
+                "tgt": {"sigma": 0.6}},  # shape only: scale set by the BCN total
     "edges": {"model": "kernel", "kernel": "gaussian", "scale": 0.12},
     "background": {"model": "uniform", "ratio": 0.05},
 })

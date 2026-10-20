@@ -25,18 +25,18 @@ What is **not** inferred, and has to be chosen: the kernel scale and the backgro
 ## Density measured on points
 
 `bipgen.density.measure` takes 2D points, maps their bounding box to $[-1, 1]^2$, counts
-the points in the cells of the grid inside the disk, and computes Moran's I of the
-counts at each lag. When the points are only part of the nodes, counting noise
-inflates the variance of the counts and attenuates the correlation; the corrected
-correlogram multiplies it by $\mathrm{var}/(\mathrm{var} - \mathrm{mean})$, which
-treats the counts as Poisson draws around the underlying density.
+the points in the cells of the grid inside the disk, and computes the spatial correlation
+between nearby cells (Moran's I) of the counts at each lag. This assumes that the known
+positions are a random sample of the nodes, and that BCN and TGT share the same density,
+since both are drawn from it.
 
-Assumptions and limitations:
-
-- the known positions are a random sample of the nodes, and BCN and TGT share the
-  same density, since both are drawn from it;
-- the correction tends to overestimate the correlation when the known points are a
-  large fraction of the nodes, and becomes unstable when cells hold few points.
+!!! note "Correction for partial positions"
+    When the known points are only part of the nodes, counting noise attenuates the
+    correlation. `spec_from_graph` uses the corrected correlogram, multiplied by
+    $\mathrm{var}/(\mathrm{var} - \mathrm{mean})$ (Poisson counts around the density),
+    or the raw one when the correction is not usable. The correction tends to
+    overestimate the correlation when the known points are a large fraction of the
+    nodes, and is unstable when cells hold few points.
 
 ## Comparing an observed graph with an ensemble
 
