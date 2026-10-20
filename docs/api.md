@@ -39,13 +39,3 @@
 ::: bipgen.plot.plot_degrees
 ::: bipgen.plot.plot_edge_lengths
 ::: bipgen.plot.plot_comparison
-
-## Building blocks
-
-::: bipgen.edges
-::: bipgen.kernels
-::: bipgen.positions
-::: bipgen.density
-::: bipgen.degrees
-::: bipgen.background
-::: bipgen.rng

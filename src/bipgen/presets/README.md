@@ -12,7 +12,8 @@ What is taken from the data:
 - sizes and degree sequences of the observed graph, with counts binarized and
   isolated nodes dropped (`degrees_bcn`, `degrees_tgt` in the `.npz`);
 - cell occupancies and correlogram (lags 1 and 2) of the known BCN positions on
-  a 20 x 20 grid, with the Poisson correction of `bipgen.density.measure`; these
+  a 20 x 20 grid, with the Poisson correction for counting noise (see Observed
+  graphs in the documentation); these
   drive the Metropolis positions. Only part of the BCN have a known position and
   no TGT does: the presets assume that known positions are a random sample of the
   nodes and that BCN and TGT share the same density.

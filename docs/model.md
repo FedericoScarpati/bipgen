@@ -111,9 +111,7 @@ $\theta_j \leftarrow k_j / \sum_i K_{ij}\theta_i$ until no weight changes by mor
 `edges.sinkhorn.tol`, for at most `edges.sinkhorn.max_iter` iterations. `graph.info`
 records the iterations (`sinkhorn_iterations`), whether they converged
 (`sinkhorn_converged`) and the largest relative gap between expected and target
-degrees (`sinkhorn_max_error`); the weights themselves are returned by
-`bipgen.edges.sinkhorn`. Other kernels can be added to the registry in
-`bipgen.kernels`.
+degrees (`sinkhorn_max_error`).
 
 ### k-nearest-neighbour model
 
@@ -158,8 +156,8 @@ machine and library build the same seed gives the same graph.
   error. Increase `edges.scale` or lower the degrees.
 - **Memory.** The kernel matrix is dense during scaling ($4\,n_\mathrm{bcn} n_\mathrm{tgt}$
   bytes).
-- **Densities are measured on 2D points only**: `bipgen.density.measure` works on
-  planar positions, while generation works in 2D and 3D. Measurement in 3D is
+- **Densities are measured on 2D points only**: `spec_from_graph` accepts planar
+  positions, while generation works in 2D and 3D. Measurement in 3D is
   planned for a future version.
 - **Densities measured on points** carry the assumptions listed in
   [Observed graphs](observed.md).

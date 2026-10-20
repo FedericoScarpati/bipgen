@@ -56,7 +56,7 @@ number of nodes. Degrees are assigned to nodes at random.
 | Key | Meaning |
 |---|---|
 | `model` | `kernel` (degree-matched kernel model) or `knn` |
-| `kernel` | name in the kernel registry; only `gaussian` in this version |
+| `kernel` | name of the kernel; only `gaussian` in this version |
 | `scale` | kernel length $L$, required with `kernel` |
 | `sinkhorn` | optional solver settings: `tol`, the iterations stop when no node weight changes by more than this (default `1e-3`); `max_iter` (default `2000`) |
 | `k` | with `knn`: each BCN links to its `k` nearest TGT; there is no `degrees` section |

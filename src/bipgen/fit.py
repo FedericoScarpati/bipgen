@@ -48,8 +48,9 @@ def spec_from_graph(
     positions
         Optional ``(m, 2)`` array of known positions of some nodes (rows with
         NaN are ignored). When given, positions are drawn with the Metropolis
-        method, with the occupancies and corrected correlogram measured on
-        these points (see :func:`bipgen.density.measure`); otherwise uniformly.
+        method, with the cell occupancies (``n_bins`` cells per axis) and the
+        correlogram (lags 1 to ``n_lags``, corrected for counting noise)
+        measured on these points; otherwise uniformly.
     background
         Background section of the specification; default no background.
     """

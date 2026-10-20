@@ -11,8 +11,7 @@
 - **Degrees**: lognormal, constant or empirical target sequences, integer, with equal totals
   on the two sides.
 - **Geometric edges**: Gaussian kernel with node weights fitted by Sinkhorn scaling to the
-  target degrees, sampled block by block; or each BCN linked to its k nearest TGT. Kernels
-  live in a registry.
+  target degrees, sampled block by block; or each BCN linked to its k nearest TGT.
 - **Background edges**: uniform or proportional to the fitted node weights (realized degrees
   for the kNN model), in a given ratio to the geometric edges; each edge records its origin.
 - **Reproducibility**: independent random streams spawned from one seed; Sinkhorn scaling on

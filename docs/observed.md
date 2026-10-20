@@ -24,9 +24,10 @@ What is **not** inferred, and has to be chosen: the kernel scale and the backgro
 
 ## Density measured on points
 
-`bipgen.density.measure` takes 2D points, maps their bounding box to $[-1, 1]^2$, counts
-the points in the cells of the grid inside the disk, and computes the spatial correlation
-between nearby cells (Moran's I) of the counts at each lag. This assumes that the known
+With `positions`, `spec_from_graph` takes the 2D points, maps their bounding box to
+$[-1, 1]^2$, counts the points in the cells of a grid with `n_bins` cells per axis
+inside the disk, and computes the spatial correlation between nearby cells (Moran's I)
+of the counts at lags 1 to `n_lags`. This assumes that the known
 positions are a random sample of the nodes, and that BCN and TGT share the same density,
 since both are drawn from it.
 
