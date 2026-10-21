@@ -2,6 +2,9 @@
 
 Specifications built from the published Slide-recon datasets (Hu et al., *Nature
 Biotechnology* 2025; Single Cell Portal SCP2577) with `bipgen.spec_from_graph`.
+The presets are derived from the public Single Cell Portal study SCP2577 and are
+provided for research use, under the portal's terms of service; please cite Hu et al.
+(2025) when using them.
 
 | Preset | Source dataset |
 |---|---|
