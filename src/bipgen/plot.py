@@ -62,7 +62,9 @@ def plot_graph(graph, ax=None, max_edges=3000, node_size=3.0, seed=0):
     if not three_d:
         ax.set_aspect("equal")
         _style(ax)
-    shown = f", {fraction:.0%} of edges drawn" if 0 < fraction < 1 else ""
+    # below 1% one significant digit, so that a small sample does not read "0%"
+    shown = f", {100 * fraction:.1g}% of edges drawn" if 0 < fraction < 0.01 else (
+        f", {fraction:.0%} of edges drawn" if 0 < fraction < 1 else "")
     ax.set_title(f"{graph.n_bcn} BCN, {graph.n_tgt} TGT, {graph.n_edges} edges{shown}",
                  fontsize=9, color=COLORS["ink"])
     _legend_below(ax, ncol=4)
