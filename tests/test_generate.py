@@ -106,3 +106,13 @@ def test_file_positions_used_as_given():
     g = bipgen.generate(spec)
     assert np.array_equal(g.pos_bcn, p) and np.array_equal(g.pos_tgt, q)
     assert g.geometric.nnz > 0
+
+
+def test_timing_recorded(spec):
+    t = bipgen.generate(spec).info["timing"]
+    assert set(t) == {"positions", "degrees", "sinkhorn", "edges", "background", "total"}
+    assert all(v >= 0 for v in t.values())
+    assert t["total"] >= max(v for k, v in t.items() if k != "total")
+    knn = bipgen.generate(bipgen.spec_from_dict({"sizes": {"n_bcn": 50, "n_tgt": 60},
+                                                 "edges": {"model": "knn", "k": 3}})).info["timing"]
+    assert set(knn) == {"positions", "edges", "background", "total"}

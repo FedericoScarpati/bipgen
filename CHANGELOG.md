@@ -15,7 +15,8 @@
 - **Background edges**: uniform or proportional to the fitted node weights (realized degrees
   for the kNN model), in a given ratio to the geometric edges; each edge records its origin.
 - **Reproducibility**: independent random streams spawned from one seed; Sinkhorn scaling on
-  one BLAS thread, so results do not depend on the number of cores.
+  one BLAS thread, so results do not depend on the number of cores; every graph records the
+  seconds spent in each generation step.
 - **Observed graphs**: specification from a biadjacency matrix (sizes, degree sequences,
   density of known positions); summary statistics and Monte Carlo comparison of an observed
   graph with an ensemble; Kolmogorov-Smirnov distances of degree distributions.

@@ -19,7 +19,8 @@ class BipartiteGraph:
     matrices of 0/1 entries; their sum is the full biadjacency matrix. The
     ``data`` array of these matrices is the slot for edge weights in later
     versions. ``info`` records how the realization was produced: the seed, the
-    target and expected numbers of edges, and solver diagnostics.
+    target and expected numbers of edges, solver diagnostics, and the seconds
+    spent in each step (``timing``).
     ``target_degrees`` holds the ``(bcn, tgt)`` target degrees of the kernel
     model, and is ``None`` for the kNN model.
     """

@@ -16,7 +16,7 @@ sections cover reproducibility and known limitations.
 
 The graph also keeps the specification it was built from, in `graph.spec`, and the
 diagnostics of each step, such as the correlogram reached or the Sinkhorn iterations,
-in `graph.info`.
+in `graph.info`, together with the seconds each step took (`graph.info["timing"]`).
 
 ## Positions
 

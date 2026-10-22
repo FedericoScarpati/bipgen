@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import numpy as np
 from scipy.sparse import csr_matrix
 
@@ -35,6 +37,22 @@ def _positions(spec: Spec, rng: np.random.Generator):
     raise ValueError(f"unknown positions method {method!r}")
 
 
+class _Clock:
+    """Seconds spent in each step of a generation, for ``graph.info["timing"]``."""
+
+    def __init__(self) -> None:
+        self.start = self.last = time.perf_counter()
+        self.steps: dict[str, float] = {}
+
+    def lap(self, step: str) -> None:
+        now = time.perf_counter()
+        self.steps[step] = round(now - self.last, 3)
+        self.last = now
+
+    def result(self) -> dict[str, float]:
+        return {**self.steps, "total": round(time.perf_counter() - self.start, 3)}
+
+
 def _degree_params(spec: Spec, side: str) -> dict:
     params = dict(spec.degrees[side])
     if spec.degrees["distribution"] == "empirical":
@@ -46,11 +64,14 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
     """Draw one graph from ``spec``.
 
     ``seed`` overrides the seed of the specification (default 42); the seed
-    actually used is stored in ``graph.seed`` and ``graph.info["seed"]``.
+    actually used is stored in ``graph.seed`` and ``graph.info["seed"]``. The
+    seconds spent in each step, and in total, are in ``graph.info["timing"]``.
     """
+    clock = _Clock()
     seed = resolve_seed(seed, spec.seed)
     rng = streams(seed)
     pos_bcn, pos_tgt, pos_info = _positions(spec, rng["positions"])
+    clock.lap("positions")
     info = {"seed": seed, **pos_info}
 
     model = spec.edges["model"]
@@ -59,15 +80,18 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
             spec.degrees["distribution"], _degree_params(spec, "bcn"),
             _degree_params(spec, "tgt"), spec.n_bcn, spec.n_tgt, rng["degrees"],
         )
+        clock.lap("degrees")
         name, scale = spec.edges["kernel"], float(spec.edges["scale"])
         solver = spec.edges["sinkhorn"]
         fit = edges.sinkhorn(pos_bcn, pos_tgt, k_bcn, k_tgt, name, scale,
                              tol=float(solver["tol"]), max_iter=int(solver["max_iter"]))
+        clock.lap("sinkhorn")
         if not fit.converged:
             info["warning"] = "Sinkhorn did not converge: compare expected_edges with target_edges"
         geometric, expected = edges.sample_kernel_edges(
             pos_bcn, pos_tgt, fit, name, scale, rng["edges"], return_expected=True
         )
+        clock.lap("edges")
         targets = (k_bcn, k_tgt)
         weights = (fit.theta_a, fit.theta_b)  # background: the fitted node weights
         info.update(target_edges=int(k_bcn.sum()), expected_edges=expected,
@@ -76,6 +100,7 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
     elif model == "knn":
         targets = None
         geometric = edges.knn_edges(pos_bcn, pos_tgt, int(spec.edges["k"]))
+        clock.lap("edges")
         weights = (np.asarray(geometric.sum(axis=1)).ravel(),
                    np.asarray(geometric.sum(axis=0)).ravel())
     else:
@@ -87,5 +112,7 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
     )
     data = np.ones(rows.size, dtype=np.uint8)
     background = csr_matrix((data, (rows, cols)), shape=geometric.shape)
-    info.update(geometric_edges=int(geometric.nnz), background_edges=int(background.nnz))
+    clock.lap("background")
+    info.update(geometric_edges=int(geometric.nnz), background_edges=int(background.nnz),
+                timing=clock.result())
     return BipartiteGraph(geometric, background, pos_bcn, pos_tgt, seed, spec, info, targets)

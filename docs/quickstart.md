@@ -60,7 +60,7 @@ graph.biadjacency                  # all edges
 graph.edges()                      # table: bcn, tgt, origin
 graph.degrees()                    # realized degrees of both sides
 graph.target_degrees               # targets of the kernel model
-graph.info                         # seed, target and expected edges, solver diagnostics
+graph.info                         # seed, edges, solver diagnostics, seconds per step
 ```
 
 **Figures**
