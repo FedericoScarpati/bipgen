@@ -40,3 +40,6 @@ def test_bad_inputs(geometric):
         background_edges(geometric, 0.1, "erdos", np.random.default_rng(0))
     with pytest.raises(ValueError):
         background_edges(geometric, 0.1, "configuration", np.random.default_rng(0))
+    with pytest.raises(ValueError, match="positive weights"):
+        background_edges(geometric, 0.1, "configuration", np.random.default_rng(0),
+                         np.zeros(400), np.ones(500))

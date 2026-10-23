@@ -78,16 +78,21 @@ def _ccdf(values):
     return k, 1.0 - first / values.size
 
 
+def _step(ax, degrees, **style):
+    """CCDF as a step line; a single degree (kNN BCN, constant targets) as a marker."""
+    k, frac = _ccdf(degrees)
+    ax.step(k, frac, where="post", marker="o" if k.size == 1 else None, **style)
+
+
 def plot_degrees(graph, axes=None):
     """Complementary cumulative degree distributions, realized and target, on log-log axes."""
     if axes is None:
         _, axes = plt.subplots(1, 2, figsize=(8, 3.2))
     targets = graph.target_degrees or (None, None)
     for ax, side, deg, target in zip(axes, ("bcn", "tgt"), graph.degrees(), targets, strict=True):
-        ax.step(*_ccdf(deg), where="post", color=COLORS[side], lw=2, label="realized")
+        _step(ax, deg, color=COLORS[side], lw=2, label="realized")
         if target is not None:
-            ax.step(*_ccdf(target), where="post", color=COLORS["ink"], lw=1.5, ls="--",
-                    label="target")
+            _step(ax, target, color=COLORS["ink"], lw=1.5, ls="--", label="target")
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.xaxis.set_minor_formatter(NullFormatter())  # no labels on minor ticks: they overlap

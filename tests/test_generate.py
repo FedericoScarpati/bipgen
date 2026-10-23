@@ -63,24 +63,41 @@ def test_metropolis_positions():
     assert g.pos_bcn.shape == (300, 2) and len(g.info["correlogram"]) == 2
 
 
-def test_configuration_background_uses_fitted_weights(spec, monkeypatch):
+def test_configuration_background_uses_geometric_degrees(spec, monkeypatch):
     module = importlib.import_module("bipgen.generate")
     seen = {}
-    sinkhorn, background_edges = module.edges.sinkhorn, module.background_edges
-
-    def fit(*args, **kwargs):
-        seen["fit"] = sinkhorn(*args, **kwargs)
-        return seen["fit"]
+    background_edges = module.background_edges
 
     def background(geometric, ratio, model, rng, weights_a, weights_b):
-        seen["weights"] = (weights_a, weights_b)
+        seen.update(geometric=geometric, weights=(weights_a, weights_b))
         return background_edges(geometric, ratio, model, rng, weights_a, weights_b)
 
-    monkeypatch.setattr(module.edges, "sinkhorn", fit)
     monkeypatch.setattr(module, "background_edges", background)
     bipgen.generate(spec)
-    assert seen["weights"][0] is seen["fit"].theta_a
-    assert seen["weights"][1] is seen["fit"].theta_b
+    geometric = seen["geometric"]
+    np.testing.assert_array_equal(seen["weights"][0], geometric.sum(axis=1).A1)
+    np.testing.assert_array_equal(seen["weights"][1], geometric.sum(axis=0).A1)
+
+
+def test_configuration_background_share_is_uniform():
+    # every node gets on average ratio / (1 + ratio) of its edges from the background,
+    # also nodes with few partners nearby (short kernel, nodes near the border)
+    spec = bipgen.spec_from_dict({
+        "sizes": {"n_bcn": 800, "n_tgt": 1200},
+        "degrees": {"distribution": "lognormal", "bcn": {"median": 8, "sigma": 0.5},
+                    "tgt": {"sigma": 0.6}},
+        "edges": {"model": "kernel", "scale": 0.08},
+        "background": {"model": "configuration", "ratio": 0.2},
+    })
+    outer, inner = np.zeros(2), np.zeros(2)
+    for seed in range(5):
+        g = bipgen.generate(spec, seed=seed)
+        border = np.linalg.norm(g.pos_bcn, axis=1) > 0.9
+        counts = np.stack([g.geometric.sum(axis=1).A1, g.background.sum(axis=1).A1])
+        outer += counts[:, border].sum(axis=1)
+        inner += counts[:, ~border].sum(axis=1)
+    for geometric, background in (outer, inner):
+        assert abs(background / (geometric + background) - 0.2 / 1.2) < 0.02
 
 
 def test_overlapping_edges_rejected(spec):

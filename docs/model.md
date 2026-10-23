@@ -126,9 +126,15 @@ edges. `background.model` sets how the endpoints are drawn:
 
 - `none` (the default): no background edges;
 - `uniform`: every pair equally likely;
-- `configuration`: pair $(i, j)$ drawn with probability proportional to
-  $\theta_i \theta_j$, the node weights fitted by the kernel model (realized degrees
-  $k_i k_j$ for the kNN model, which has no weights).
+- `configuration`: pair $(i, j)$ drawn with probability proportional to the
+    geometric degrees of its nodes,
+
+    $$
+    \Pr(i, j) \propto g_i\, g_j, \qquad g_i = \text{number of geometric edges of } i,
+    $$
+
+    so that every node gets on average the same share of background edges,
+    `ratio / (1 + ratio)`. Nodes without geometric edges get none.
 
 Pairs that are already linked are redrawn, so the two kinds of edges are disjoint; the
 `origin` column of `graph.edges()` tells them apart.

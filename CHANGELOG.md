@@ -12,8 +12,9 @@
   on the two sides.
 - **Geometric edges**: Gaussian kernel with node weights fitted by Sinkhorn scaling to the
   target degrees, sampled block by block; or each BCN linked to its k nearest TGT.
-- **Background edges**: uniform or proportional to the fitted node weights (realized degrees
-  for the kNN model), in a given ratio to the geometric edges; each edge records its origin.
+- **Background edges**: uniform or proportional to the geometric degrees (the same share of
+  background edges for every node on average), in a given ratio to the geometric edges;
+  each edge records its origin.
 - **Reproducibility**: independent random streams spawned from one seed; Sinkhorn scaling on
   one BLAS thread, so results do not depend on the number of cores; every graph records the
   seconds spent in each generation step.

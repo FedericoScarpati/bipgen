@@ -44,7 +44,7 @@ edges:
   # k: 10
 
 background:        # edges unrelated to distance, drawn after the geometric ones
-  model: uniform   # none | uniform | configuration (endpoints ~ fitted node weights)
+  model: uniform   # none | uniform | configuration (endpoints ~ geometric degrees)
   ratio: 0.05      # background edges per geometric edge
 
 arrays: null       # optional companion .npz with the arrays referenced above

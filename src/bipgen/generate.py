@@ -93,7 +93,6 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
         )
         clock.lap("edges")
         targets = (k_bcn, k_tgt)
-        weights = (fit.theta_a, fit.theta_b)  # background: the fitted node weights
         info.update(target_edges=int(k_bcn.sum()), expected_edges=expected,
                     sinkhorn_iterations=fit.n_iter, sinkhorn_converged=fit.converged,
                     sinkhorn_max_error=fit.max_error)
@@ -101,11 +100,12 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
         targets = None
         geometric = edges.knn_edges(pos_bcn, pos_tgt, int(spec.edges["k"]))
         clock.lap("edges")
-        weights = (np.asarray(geometric.sum(axis=1)).ravel(),
-                   np.asarray(geometric.sum(axis=0)).ravel())
     else:
         raise ValueError(f"unknown edge model {model!r}")
 
+    # configuration background: endpoints weighted by their geometric degrees
+    weights = (np.asarray(geometric.sum(axis=1)).ravel(),
+               np.asarray(geometric.sum(axis=0)).ravel())
     rows, cols = background_edges(
         geometric, spec.background["ratio"], spec.background["model"], rng["background"],
         *weights,

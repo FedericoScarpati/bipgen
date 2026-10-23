@@ -65,7 +65,7 @@ number of nodes. Degrees are assigned to nodes at random.
 
 | Key | Meaning |
 |---|---|
-| `model` | `none`, `uniform` (endpoints uniform), `configuration` (endpoints proportional to the node weights $\theta$ of the kernel model, or to realized degrees for `knn`) |
+| `model` | `none`, `uniform` (endpoints uniform), `configuration` (endpoints proportional to their geometric degrees: every node gets the same share of background edges on average) |
 | `ratio` | background edges per geometric edge |
 
 ## Example file
