@@ -1,0 +1,22 @@
+{
+  "source": "Slide-tags human tonsil (Russell et al., Nature 2024; Single Cell Portal SCP2169), cell-bead network as used in Dahlberg et al., Nat. Commun. 16, 9652 (2025); counts binarized, isolated nodes dropped",
+  "positions_known_bcn": 5631,
+  "correlogram_raw": [
+    0.5757,
+    0.3413
+  ],
+  "statistics": {
+    "n_bcn": 7620,
+    "n_tgt": 60985,
+    "n_edges": 542075,
+    "bcn_degree_mean": 71.13845144356955,
+    "bcn_degree_median": 55.0,
+    "bcn_degree_p90": 132.0,
+    "bcn_degree_max": 1245,
+    "tgt_degree_mean": 8.888661146183487,
+    "tgt_degree_median": 6.0,
+    "tgt_degree_p90": 19.0,
+    "tgt_degree_max": 126,
+    "giant_component_fraction": 1.0
+  }
+}

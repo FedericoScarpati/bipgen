@@ -51,9 +51,11 @@ def test_statistics_and_compare(observed):
 
 def test_presets():
     names = bipgen.presets.available()
-    assert {"c58_4", "c58_5", "c58_16"} <= set(names)
+    assert {"c58_4", "c58_5", "c58_16", "slidetags_tonsil"} <= set(names)
     spec = bipgen.presets.load("c58_4")
     obs = bipgen.presets.observed("c58_4")
     assert spec.n_bcn == obs["statistics"]["n_bcn"]
     assert obs["degrees"][0].sum() == obs["statistics"]["n_edges"]
     assert spec.positions["method"] == "metropolis"
+    tonsil = bipgen.presets.observed("slidetags_tonsil")
+    assert bipgen.presets.load("slidetags_tonsil").n_tgt == tonsil["statistics"]["n_tgt"]

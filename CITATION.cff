@@ -1,4 +1,4 @@
-# To complete before the first release: license, affiliations, co-authors, DOI.
+# To complete before the first release: license.
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "bipgen: spatial bipartite proximity graphs from degree-matched null models"
@@ -6,6 +6,12 @@ type: software
 authors:
   - family-names: Scarpati
     given-names: Federico
+    orcid: "https://orcid.org/0009-0001-3248-8528"
+    affiliation: "Sorbonne Université, CNRS, Institut de Biologie Paris-Seine, Laboratoire de Biologie Computationnelle, Quantitative et Synthétique — CQSB, Paris, France"
+  - family-names: Weigt
+    given-names: Martin
+    orcid: "https://orcid.org/0000-0002-0492-3684"
+    affiliation: "Sorbonne Université, CNRS, Institut de Biologie Paris-Seine, Laboratoire de Biologie Computationnelle, Quantitative et Synthétique — CQSB, Paris, France"
 repository-code: "https://github.com/FedericoScarpati/bipgen"
 keywords:
   - spatial networks

@@ -37,7 +37,7 @@ ensemble = [bipgen.generate(spec, seed=s) for s in range(10)]
 bipgen.plot_graph(graph)
 ```
 
-Presets built from published Slide-recon arrays reproduce the sizes, degree
+Presets built from published Slide-recon and Slide-tags data reproduce the sizes, degree
 distributions and spatial density of observed graphs:
 
 ```python

@@ -3,7 +3,7 @@
 ```python
 import bipgen
 
-bipgen.presets.available()                 # ['c58_16', 'c58_4', 'c58_5']
+bipgen.presets.available()                 # ['c58_16', 'c58_4', 'c58_5', 'slidetags_tonsil']
 spec = bipgen.presets.load("c58_4")
 graph = bipgen.generate(spec)              # about half a minute on one core
 table = bipgen.compare(bipgen.presets.observed("c58_4"), [graph])

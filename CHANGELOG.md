@@ -22,7 +22,8 @@
   graph with an ensemble; Kolmogorov-Smirnov distances of degree distributions.
 - **Input and output**: native directory format, CSV edge lists.
 - **Descriptors**: registry with node degree and edge degree sum.
-- **Presets**: `c58_4`, `c58_5`, `c58_16`, built from published Slide-recon arrays.
+- **Presets**: `c58_4`, `c58_5`, `c58_16` from published Slide-recon arrays, and
+  `slidetags_tonsil` from the Slide-tags human tonsil network.
 - **Figures**: layout in 2D and 3D, degree distributions, edge lengths, comparison with an
   ensemble.
 - **Documentation**: user guide, model with its literature sources, two tutorials.
