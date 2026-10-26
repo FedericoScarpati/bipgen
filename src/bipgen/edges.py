@@ -14,9 +14,10 @@ unclipped product ``theta_i K_ij theta_j``. Clipping at 1 then lowers the
 expected degree of nodes whose nearby pairs would exceed probability 1, so the
 realized graph has fewer edges than the target total. The deficit grows when
 the kernel is short compared with the typical distance between linked nodes,
-and vanishes for long kernels. For example, with 800 x 1000 nodes, median BCN
-degree 15 and uniform positions in the unit disk, the expected number of edges
-is 90% of the target at scale 0.15 and 99% at scale 0.30. The expected number
+and vanishes for long kernels. For example, with 800 x 1000 nodes, lognormal
+degrees with BCN median 15 and sigma 0.5 (BCN) and 0.6 (TGT), and uniform
+positions in the unit disk, the expected number of edges is 90% of the target
+at scale 0.15 and 99% at scale 0.30. The expected number
 of edges after clipping is the sum of the clipped matrix; sampled graphs
 fluctuate around it.
 

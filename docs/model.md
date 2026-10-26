@@ -47,8 +47,10 @@ radius. `positions.method` chooses one of three methods.
           an edge in 3D.
         - A swap that changes the error $E = \sum_k (\rho_k - \rho_k^\ast)^2$ by
           $\Delta E$ is accepted with probability $\min(1, e^{-\Delta E / T})$
-          (Metropolis rule); the temperature $T$ decreases geometrically over
-          `density.sweeps` sweeps, of one proposed swap per cell.
+          (Metropolis rule). The temperature $T$ starts where a worsening swap of
+          average size is accepted with probability 0.8, and decreases geometrically
+          to a thousandth of that over `density.sweeps` sweeps, of one proposed swap
+          per cell.
         - Swaps keep the set of counts and change only their arrangement. The
           correlogram reached is stored in `graph.info["correlogram"]`.
     4. **Points**: drawn uniformly inside each cell; points outside the domain are
@@ -69,13 +71,16 @@ Target degrees are used only by the kernel model, and are stored in
 - `lognormal`: median `median` and standard deviation of the logarithm `sigma`; the
   TGT side takes only `sigma`;
 - `constant`: every BCN gets `value`;
-- `empirical`: values taken from the array `key` of the arrays file, resampled with
-  replacement when its length differs from the number of nodes.
+- `empirical`: positive values taken from the array `key` of the arrays file,
+  resampled with replacement when their number differs from the number of nodes.
 
 The BCN degrees are rounded and clipped to $[1, n_\mathrm{tgt}]$. The TGT values give
 only a shape: they are rescaled to the BCN total, rounded, clipped to
 $[1, n_\mathrm{bcn}]$ and adjusted by one unit at a time until the two totals are
-equal. Degrees are assigned to nodes at random, so they are independent of position.
+equal. With `uniform` and `metropolis` positions the order of the nodes carries no
+spatial information, so degrees are independent of position. With `file` positions,
+an `empirical` array as long as the side keeps its order: the $i$-th value goes to
+the $i$-th node.
 
 ## Geometric edges
 
@@ -94,24 +99,46 @@ Each pair $(i, j)$ is linked independently with probability
 
 $$
 P_{ij} = \min\left(1,\ \theta_i \, K(d_{ij}) \, \theta_j\right),
-\qquad K(d) = e^{-(d/L)^2},
 $$
 
-where $K$ is the `gaussian` kernel (`edges.kernel`), $L$ is `edges.scale`, and the
-node weights $\theta$ solve
+where $K$ is the kernel (see [The kernel](#the-kernel)) and the node weights $\theta$
+solve
 
 $$
 \sum_j \theta_i K(d_{ij}) \theta_j = k_i, \qquad \sum_i \theta_i K(d_{ij}) \theta_j = k_j ,
 $$
 
-so that expected degrees match the targets $k$ (before the clipping at 1, see
-[Known limitations](#known-limitations)). The weights are found by Sinkhorn scaling [2],
-alternating $\theta_i \leftarrow k_i / \sum_j K_{ij}\theta_j$ and
-$\theta_j \leftarrow k_j / \sum_i K_{ij}\theta_i$ until no weight changes by more than
-`edges.sinkhorn.tol`, for at most `edges.sinkhorn.max_iter` iterations. `graph.info`
-records the iterations (`sinkhorn_iterations`), whether they converged
-(`sinkhorn_converged`) and the largest relative gap between expected and target
-degrees (`sinkhorn_max_error`).
+for every BCN $i$ and every TGT $j$, so that expected degrees match the targets $k$
+(before the clipping at 1, see [Known limitations](#known-limitations)). The weights
+are found by Sinkhorn scaling [2], alternating
+$\theta_i \leftarrow k_i / \sum_j K_{ij}\theta_j$ and
+$\theta_j \leftarrow k_j / \sum_i K_{ij}\theta_i$, with $K_{ij} = K(d_{ij})$, until no
+weight changes by more than `edges.sinkhorn.tol`, for at most
+`edges.sinkhorn.max_iter` iterations. `graph.info` records the iterations
+(`sinkhorn_iterations`), whether they converged (`sinkhorn_converged`) and the
+largest relative gap between expected and target degrees before clipping
+(`sinkhorn_max_error`).
+
+#### The kernel
+
+The kernel $K(d)$ is the profile of a link in distance. Each node has a weight
+$\theta$, fitted to its target degree, and the kernel sets how far its links reach. A
+constant factor in $K$ is absorbed by the weights, so only its shape matters, and
+$K(0) = 1$. `edges.kernel` names the kernel. The only kernel in this version is the
+Gaussian:
+
+- **Gaussian** (`gaussian`):
+
+    $$
+    K(d) = e^{-(d/L)^2},
+    $$
+
+    where $L$ is `edges.scale`, in units of the domain radius. The kernel depends on
+    the distance only through $d/L$: it falls to $1/e \approx 0.37$ at $d = L$ and to
+    $e^{-4} \approx 0.02$ at $d = 2L$, so $L$ is the reach of a link. The Gaussian is
+    the profile of a molecule that diffuses for a fixed time from one node towards the
+    other, and $L$ is the distance it typically travels in that time: as is standard
+    for diffusion processes, $L^2 = 4Dt$ for a diffusion coefficient $D$ and a time $t$.
 
 ### k-nearest-neighbour model
 
@@ -152,9 +179,10 @@ machine and library build the same seed gives the same graph.
 
 - **Clipping lowers degrees.** Sinkhorn scaling matches the targets before the
   clipping at 1. For kernels short compared with the distance between linked nodes,
-  clipping removes edges: with 800 x 1000 nodes, median BCN degree 15 and uniform
-  positions, the expected number of edges is 90% of the target at scale 0.15 and 99%
-  at scale 0.30. `graph.info` reports `target_edges`, the target number of
+  clipping removes edges: with 800 x 1000 nodes, lognormal degrees with BCN median 15
+  and `sigma` 0.5 (BCN) and 0.6 (TGT), and uniform positions, the expected number of
+  edges is 90% of the target at scale 0.15 and 99% at scale 0.30. Broader degree
+  distributions lose more. `graph.info` reports `target_edges`, the target number of
   edges, and `expected_edges`, the expected number after clipping.
 - **Short kernels.** When too few partners lie within the kernel range, the weights
   keep growing and Sinkhorn scaling stops at `edges.sinkhorn.max_iter` with a warning,
