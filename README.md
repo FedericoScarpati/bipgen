@@ -52,14 +52,6 @@ The [documentation](https://federicoscarpati.github.io/bipgen/) covers the speci
 format, the functions that generate graphs and compute their statistics, the model with its
 assumptions and known limitations, and two tutorials.
 
-## Tests
-
-```bash
-git clone https://github.com/FedericoScarpati/bipgen && cd bipgen
-pip install -e ".[dev]"
-pytest
-```
-
 ## Authors
 
 [Federico Scarpati](https://orcid.org/0009-0001-3248-8528) and

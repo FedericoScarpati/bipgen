@@ -22,8 +22,6 @@ pip install -e ".[dev]"
 pytest
 ```
 
-The documentation is built with `pip install -e ".[docs]"` and `mkdocs serve`.
-
 ## Hardware requirements
 
 - **CPU**: one realization runs on one core, in about half a minute for
