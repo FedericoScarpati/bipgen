@@ -61,7 +61,7 @@ Paris, France.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Copyright (c) 2026 Sorbonne Université.
+MIT, see [LICENSE](LICENSE). Copyright (c) 2026 The bipgen authors.
 
 ## Funding
 
