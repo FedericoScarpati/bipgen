@@ -60,6 +60,13 @@ pytest
 ruff check src tests
 ```
 
+## Authors
+
+[Federico Scarpati](https://orcid.org/0009-0001-3248-8528) and
+[Martin Weigt](https://orcid.org/0000-0002-0492-3684), Sorbonne Université, CNRS, Institut de
+Biologie Paris-Seine, Laboratoire de Biologie Computationnelle, Quantitative et Synthétique (CQSB),
+Paris, France.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). Copyright (c) 2026 Sorbonne Université.
