@@ -49,15 +49,15 @@ table = bipgen.compare(bipgen.presets.observed("c58_4"), [bipgen.generate(spec)]
 ## Documentation
 
 The [documentation](https://federicoscarpati.github.io/bipgen/) covers the specification
-format, the model with its assumptions and known limitations, and two tutorials. Build it
-locally with `pip install -e ".[docs]"` and `mkdocs serve`.
+format, the functions that generate graphs and compute their statistics, the model with its
+assumptions and known limitations, and two tutorials.
 
-## Development
+## Tests
 
 ```bash
+git clone https://github.com/FedericoScarpati/bipgen && cd bipgen
 pip install -e ".[dev]"
 pytest
-ruff check src tests
 ```
 
 ## Authors
