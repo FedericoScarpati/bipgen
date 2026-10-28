@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.sparse import csr_matrix
 from scipy.sparse import random as sparse_random
 
 import bipgen
@@ -59,3 +60,25 @@ def test_presets():
     assert spec.positions["method"] == "metropolis"
     tonsil = bipgen.presets.observed("slidetags_tonsil")
     assert bipgen.presets.load("slidetags_tonsil").n_tgt == tonsil["statistics"]["n_tgt"]
+
+
+def test_statistics_of_a_graph_without_edges():
+    stats = bipgen.statistics(csr_matrix((2, 2)))
+    assert stats["n_edges"] == 0 and stats["bcn_degree_max"] == 0
+    assert np.isnan(stats["bcn_degree_mean"]) and np.isnan(stats["giant_component_fraction"])
+
+
+def test_duplicate_entries_are_one_edge():
+    adj = csr_matrix((np.array([1, 1]), np.array([0, 0]), np.array([0, 2, 2])), shape=(2, 2))
+    spec = bipgen.spec_from_graph(adj, scale=0.2)
+    assert spec.arrays["degrees_bcn"].tolist() == [1]
+
+
+@pytest.mark.parametrize("positions,message", [
+    (np.random.default_rng(0).random((50, 3)), r"\(m, 2\)"),
+    (np.zeros((50, 2)), "line or a point"),
+    (np.full((5, 2), np.nan), "at least two points"),
+])
+def test_measured_positions_are_checked(observed, positions, message):
+    with pytest.raises(ValueError, match=message):
+        bipgen.spec_from_graph(observed, scale=0.2, positions=positions)

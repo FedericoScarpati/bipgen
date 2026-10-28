@@ -95,6 +95,8 @@ def sinkhorn(
     The two degree totals must be equal. Clipping ``P`` at 1 afterwards lowers the
     degrees of dense nodes below their target (see the module docstring).
     """
+    if max_iter < 1:
+        raise ValueError(f"max_iter must be at least 1, got {max_iter}")
     k_a = np.asarray(k_a, dtype=np.float32)
     k_b = np.asarray(k_b, dtype=np.float32)
     if not np.isclose(k_a.sum(), k_b.sum(), rtol=1e-3):

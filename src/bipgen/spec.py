@@ -44,6 +44,17 @@ def _check_keys(where: str, given: dict, allowed: set) -> None:
         raise SpecError(f"{where}: unknown keys {sorted(unknown)}; allowed: {sorted(allowed)}")
 
 
+def _positive_float(where: str, value, allow_zero: bool = False) -> float:
+    try:
+        x = float(value)
+    except (TypeError, ValueError):
+        raise SpecError(f"{where} must be a number, got {value!r}") from None
+    if not np.isfinite(x) or x < 0 or (x == 0 and not allow_zero):
+        kind = "non-negative" if allow_zero else "positive"
+        raise SpecError(f"{where} must be a finite {kind} number, got {value!r}")
+    return x
+
+
 def _positive_int(where: str, value) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or value < 1:
         raise SpecError(f"{where} must be a positive integer, got {value!r}")
@@ -130,8 +141,7 @@ class Spec:
         occ = density.setdefault("occupancy", {"source": "gamma", "cv": 0.5})
         if occ.get("source") == "gamma":
             _check_keys("positions.density.occupancy", occ, {"source", "cv"})
-            if float(occ.get("cv", 0)) <= 0:
-                raise SpecError("positions.density.occupancy.cv must be positive")
+            occ["cv"] = _positive_float("positions.density.occupancy.cv", occ.get("cv", 0))
         elif occ.get("source") == "file":
             _check_keys("positions.density.occupancy", occ, {"source", "key"})
             self._require_array(occ.get("key"), "positions.density.occupancy.key")
@@ -160,12 +170,13 @@ class Spec:
         if name not in kernels.available():
             known = kernels.available()
             raise SpecError(f"edges.kernel {name!r} is not registered; available: {known}")
-        if float(self.edges.get("scale", 0)) <= 0:
-            raise SpecError("edges.scale is required with model 'kernel' and must be positive")
+        if "scale" not in self.edges:
+            raise SpecError("edges.scale is required with model 'kernel'")
+        self.edges["scale"] = _positive_float("edges.scale", self.edges["scale"])
         solver = self.edges.setdefault("sinkhorn", {})
         _check_keys("edges.sinkhorn", solver, {"tol", "max_iter"})
-        solver.setdefault("tol", 1e-3)
-        solver.setdefault("max_iter", 2000)
+        solver["tol"] = _positive_float("edges.sinkhorn.tol", solver.get("tol", 1e-3))
+        solver["max_iter"] = _positive_int("edges.sinkhorn.max_iter", solver.get("max_iter", 2000))
         self._validate_degrees()
 
     def _validate_degrees(self) -> None:
@@ -188,6 +199,12 @@ class Spec:
         missing = (allowed_bcn - set(bcn)) | {f"tgt.{k}" for k in allowed_tgt - set(tgt)}
         if missing:
             raise SpecError(f"degrees: missing {sorted(missing)} for distribution {dist!r}")
+        for side, params in (("bcn", bcn), ("tgt", tgt)):
+            for name in ("median", "value"):
+                if name in params:
+                    _positive_float(f"degrees.{side}.{name}", params[name])
+            if "sigma" in params:
+                _positive_float(f"degrees.{side}.sigma", params["sigma"], allow_zero=True)
         if dist == "empirical":
             self._require_array(bcn["key"], "degrees.bcn.key")
             self._require_array(tgt["key"], "degrees.tgt.key")
@@ -196,10 +213,8 @@ class Spec:
         model = self.background.setdefault("model", "none")
         if model not in ("none", "uniform", "configuration"):
             raise SpecError("background.model must be 'none', 'uniform' or 'configuration'")
-        ratio = float(self.background.setdefault("ratio", 0.0))
-        if ratio < 0:
-            raise SpecError("background.ratio must be >= 0")
-        self.background["ratio"] = ratio
+        self.background["ratio"] = _positive_float(
+            "background.ratio", self.background.setdefault("ratio", 0.0), allow_zero=True)
 
     def _require_array(self, key, where: str) -> None:
         if key not in self.arrays:

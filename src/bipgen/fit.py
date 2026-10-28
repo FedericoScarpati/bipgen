@@ -20,6 +20,7 @@ from .spec import Spec
 def binarize(biadjacency) -> csr_matrix:
     """0/1 copy of a (possibly weighted) biadjacency matrix."""
     adj = csr_matrix(biadjacency, copy=True)
+    adj.sum_duplicates()  # a pair stored twice is one edge
     adj.eliminate_zeros()
     adj.data = np.ones_like(adj.data, dtype=np.uint8)
     return adj.astype(np.uint8)

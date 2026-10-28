@@ -55,6 +55,17 @@ def test_defaults():
         ({"positions": {"method": "uniform", "bcn": "p"}}, "only used with method 'file'"),
         ({"positions": {"method": "file", "tgt": "q"}}, "positions.bcn is required"),
         ({"positions": {"method": "file", "bcn": "p", "tgt": "q"}}, "not found"),
+        ({"edges": {"model": "kernel", "scale": float("nan")}}, "edges.scale"),
+        ({"edges": {"model": "kernel", "scale": 0.2, "sinkhorn": {"max_iter": 0}}}, "max_iter"),
+        ({"edges": {"model": "kernel", "scale": 0.2, "sinkhorn": {"tol": -1e-3}}}, "tol"),
+        ({"degrees": {"distribution": "lognormal", "bcn": {"median": float("nan"), "sigma": 0.5},
+                      "tgt": {"sigma": 0.5}}}, "degrees.bcn.median"),
+        ({"degrees": {"distribution": "lognormal", "bcn": {"median": 5, "sigma": 0.5},
+                      "tgt": {"sigma": -1}}}, "degrees.tgt.sigma"),
+        ({"background": {"model": "uniform", "ratio": float("inf")}}, "background.ratio"),
+        ({"positions": {"method": "metropolis", "density": {"occupancy": {"source": "gamma",
+                                                                          "cv": float("nan")}}}},
+         "cv"),
     ],
 )
 def test_invalid(changes, message):

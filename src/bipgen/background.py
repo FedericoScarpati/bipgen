@@ -1,7 +1,7 @@
 """Background edges: pairs linked independently of their distance.
 
 The number of background edges is ``ratio`` times the number of geometric
-edges. Endpoints are drawn uniformly (``uniform``) or with probability
+edges, rounded down. Endpoints are drawn uniformly (``uniform``) or with probability
 proportional to node weights (``configuration``): in :func:`bipgen.generate`, the
 geometric degrees, so that every node gets on average the same share of background
 edges. Pairs that are already linked, and repeated pairs, are rejected.
@@ -36,16 +36,14 @@ def background_edges(
     if ratio < 0:
         raise ValueError(f"background ratio must be >= 0, got {ratio}")
     empty = np.empty(0, dtype=np.int64)
-    if model == "none" or ratio == 0:
-        return empty, empty
     n_a, n_b = geometric.shape
-    n_wanted = max(1, int(ratio * geometric.nnz))
-    free = n_a * n_b - geometric.nnz
-    if n_wanted > free:
-        raise ValueError(f"{n_wanted} background edges requested but only {free} free pairs")
+    n_wanted = int(ratio * geometric.nnz)
+    if model == "none" or n_wanted == 0:
+        return empty, empty
 
     if model == "uniform":
         p_a = p_b = None
+        free = n_a * n_b - geometric.nnz
     else:
         if weights_a is None or weights_b is None:
             raise ValueError("the configuration model needs node weights for both sides")
@@ -53,7 +51,11 @@ def background_edges(
         p_b = np.asarray(weights_b, dtype=np.float64)
         if p_a.sum() <= 0 or p_b.sum() <= 0:
             raise ValueError("the configuration model needs positive weights on both sides")
+        rows, cols = p_a > 0, p_b > 0  # only pairs of nodes with positive weight can be drawn
+        free = int(rows.sum()) * int(cols.sum()) - geometric[rows][:, cols].nnz
         p_a, p_b = p_a / p_a.sum(), p_b / p_b.sum()
+    if n_wanted > free:
+        raise ValueError(f"{n_wanted} background edges requested but only {free} free pairs")
 
     coo = geometric.tocoo()
     taken = np.sort(coo.row.astype(np.int64) * n_b + coo.col)

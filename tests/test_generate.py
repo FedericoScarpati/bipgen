@@ -133,3 +133,11 @@ def test_timing_recorded(spec):
     knn = bipgen.generate(bipgen.spec_from_dict({"sizes": {"n_bcn": 50, "n_tgt": 60},
                                                  "edges": {"model": "knn", "k": 3}})).info["timing"]
     assert set(knn) == {"positions", "edges", "background", "total"}
+
+
+def test_graph_keeps_a_snapshot_of_the_spec(spec):
+    g = bipgen.generate(spec)
+    spec.edges["scale"] = 0.8
+    assert g.spec.edges["scale"] == 0.25
+    again = bipgen.generate(g.spec)
+    np.testing.assert_array_equal(again.geometric.toarray(), g.geometric.toarray())

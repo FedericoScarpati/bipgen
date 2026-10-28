@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import time
 
 import numpy as np
@@ -68,6 +69,7 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
     seconds spent in each step, and in total, are in ``graph.info["timing"]``.
     """
     clock = _Clock()
+    spec = copy.deepcopy(spec)  # snapshot: later edits of the caller's spec do not reach the graph
     seed = resolve_seed(seed, spec.seed)
     rng = streams(seed)
     pos_bcn, pos_tgt, pos_info = _positions(spec, rng["positions"])
@@ -114,5 +116,6 @@ def generate(spec: Spec, seed: int | None = None) -> BipartiteGraph:
     background = csr_matrix((data, (rows, cols)), shape=geometric.shape)
     clock.lap("background")
     info.update(geometric_edges=int(geometric.nnz), background_edges=int(background.nnz),
+                background_ratio=background.nnz / geometric.nnz if geometric.nnz else float("nan"),
                 timing=clock.result())
     return BipartiteGraph(geometric, background, pos_bcn, pos_tgt, seed, spec, info, targets)

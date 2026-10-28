@@ -256,8 +256,15 @@ def measure(points: np.ndarray, n_bins: int = 20, n_lags: int = 2) -> dict:
     ``var / (var - mean)`` grows large.
     """
     pts = np.asarray(points, dtype=float)
+    if pts.ndim != 2 or pts.shape[1] != 2:
+        raise ValueError(f"positions must be an (m, 2) array of planar points, got shape "
+                         f"{pts.shape}; densities are measured in 2D only")
     pts = pts[np.isfinite(pts).all(axis=1)]
+    if len(pts) < 2:
+        raise ValueError("positions must contain at least two points with finite coordinates")
     lo, hi = pts.min(axis=0), pts.max(axis=0)
+    if np.any(hi <= lo):
+        raise ValueError("positions span a line or a point: their density cannot be measured")
     norm = 2 * (pts - lo) / (hi - lo) - 1
     mask, _ = grid_mask(n_bins)
     H, _, _ = np.histogram2d(norm[:, 0], norm[:, 1], bins=n_bins, range=[[-1, 1], [-1, 1]])

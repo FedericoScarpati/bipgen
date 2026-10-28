@@ -149,7 +149,8 @@ degrees follow from the geometry, and the `degrees` section is not used.
 
 Background edges link pairs regardless of distance, and are stored in
 `graph.background`. Their number is `background.ratio` times the number of geometric
-edges. `background.model` sets how the endpoints are drawn:
+edges, rounded down; `graph.info["background_ratio"]` records the ratio reached.
+`background.model` sets how the endpoints are drawn:
 
 - `none` (the default): no background edges;
 - `uniform`: every pair equally likely;

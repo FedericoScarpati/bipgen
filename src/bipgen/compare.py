@@ -36,11 +36,14 @@ def statistics(obj) -> dict:
     adj = _adjacency(obj)
     deg_bcn, deg_tgt = _degrees(adj)
     out = {"n_bcn": deg_bcn.size, "n_tgt": deg_tgt.size, "n_edges": int(adj.nnz)}
-    for side, deg in (("bcn", deg_bcn), ("tgt", deg_tgt)):
-        out[f"{side}_degree_mean"] = float(deg.mean())
-        out[f"{side}_degree_median"] = float(np.median(deg))
-        out[f"{side}_degree_p90"] = float(np.percentile(deg, 90))
-        out[f"{side}_degree_max"] = int(deg.max())
+    for side, deg in (("bcn", deg_bcn), ("tgt", deg_tgt)):  # a graph without edges: NaN, max 0
+        out[f"{side}_degree_mean"] = float(deg.mean()) if deg.size else float("nan")
+        out[f"{side}_degree_median"] = float(np.median(deg)) if deg.size else float("nan")
+        out[f"{side}_degree_p90"] = float(np.percentile(deg, 90)) if deg.size else float("nan")
+        out[f"{side}_degree_max"] = int(deg.max()) if deg.size else 0
+    if adj.nnz == 0:
+        out["giant_component_fraction"] = float("nan")
+        return out
     full = bmat([[None, adj], [adj.T, None]], format="csr")
     _, labels = connected_components(full, directed=False)
     active = np.r_[np.asarray(adj.sum(axis=1)).ravel(), np.asarray(adj.sum(axis=0)).ravel()] > 0
