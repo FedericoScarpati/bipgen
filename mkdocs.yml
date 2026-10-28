@@ -1,11 +1,17 @@
 site_name: bipgen
 site_description: Spatial bipartite proximity graphs from degree-matched null models
+site_url: https://federicoscarpati.github.io/bipgen/
+copyright: >-
+  Developed within <a href="https://www.voluminex-project.eu/">VOLUMINEX</a>, funded by the
+  European Innovation Council (EIC) under the EU Horizon Europe programme,
+  <a href="https://cordis.europa.eu/project/id/101184647">grant 101184647</a>.
 repo_url: https://github.com/FedericoScarpati/bipgen
 repo_name: bipgen
 edit_uri: ""
 
 theme:
   name: material
+  custom_dir: overrides
   features:
     - navigation.sections
     - content.code.copy

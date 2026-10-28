@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (first public version, 0.1.0)
+## 0.1.0 - 2026-10-28
 
 - **Specification**: one YAML file (or dictionary) per ensemble, with defaults and strict
   validation; default seed 42, overridable when generating; the seed used is recorded in

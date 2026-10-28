@@ -18,7 +18,7 @@ from .io import load, read_edge_list, save
 from .plot import plot_comparison, plot_degrees, plot_edge_lengths, plot_graph
 from .spec import Spec, SpecError, load_spec, spec_from_dict
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 __all__ = [
     "BipartiteGraph",

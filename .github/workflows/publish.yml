@@ -1,11 +1,10 @@
 name: publish
 
-# Builds the sdist and wheel and uploads them to PyPI when a release is published.
+# Builds the sdist and wheel and uploads them to PyPI, when started by hand.
 # Uses PyPI trusted publishing: configure the project on pypi.org with this
 # repository, this workflow file and the environment "pypi"; no token is stored.
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   pypi:

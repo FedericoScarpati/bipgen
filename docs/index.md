@@ -41,3 +41,19 @@ bipgen.plot_graph(graph)
 
 Next: [installation](installation.md), the [quickstart](quickstart.md), and the
 [model](model.md) with its assumptions and known limitations.
+
+## Funding
+
+<p>
+  <a href="https://www.voluminex-project.eu/"><img src="assets/funding/voluminex.png" alt="VOLUMINEX" height="56" style="height: 56px; width: auto"></a>
+  &nbsp;&nbsp;
+  <img src="assets/funding/eu_funded.png" alt="Funded by the European Union" height="64" style="height: 64px; width: auto">
+</p>
+
+bipgen is developed within [VOLUMINEX](https://www.voluminex-project.eu/), *Instrument-free
+3D molecular imaging with the VOLumetric UMI-Network EXplorer*. This project has received
+funding from the European Innovation Council (EIC) established under the EU Horizon Europe
+programme, [grant 101184647](https://cordis.europa.eu/project/id/101184647). Views and
+opinions expressed are however those of the authors only and do not necessarily reflect
+those of the European Union and European Innovation Council (EIC). Neither the European
+Union nor the granting authority can be held responsible for them.
